@@ -373,6 +373,7 @@ function enterAdoption(initialIndex = 0) {
 
 // ── 허브 모드 ──────────────────────────────────────────────
 function enterHub(justAdopted = false) {
+  $('adoptUI').classList.add('hidden');
   makeStage([state.cat.breed]);
   $('hubUI').classList.remove('hidden');
   $('jellyBox').classList.remove('hidden');

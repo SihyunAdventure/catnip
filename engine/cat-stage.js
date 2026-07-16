@@ -820,33 +820,62 @@ void main(){ o = vC; }`);
         if (p >= 1) { c.blinkT = -1; c.nextBlink = t + rand(2200, 5600); }
         else eyeOpen = Math.abs(Math.cos(p * Math.PI));
       }
-      eyeOpen = Math.min(eyeOpen, 1 - this.petMeter * 0.75);   // 쓰다듬으면 스르륵
+      // eyeOpen = 깜빡임만 반영된 개폐. 쓰다듬 감김은 content로 분리 처리.
+      const content = smoothstep(0.45, 0.95, this.petMeter);   // 문턱 넘어야 스르륵 감김
+      const arcFade = smoothstep(0.6, 1, content);             // 타원↔눈웃음 크로스페이드
       const lookX = wmx !== null ? Math.max(-1, Math.min(1, (wmx - CX) / (R * 3))) : 0;
       const lookY = wmy !== null ? Math.max(-1, Math.min(1, (wmy - CY) / (R * 3))) : 0;
       for (const side of [-1, 1]) {
         const ex = CX + side * R * 0.34 + lookX * R * 0.045;
         const ey = CY - R * 0.05 + lookY * R * 0.04;
-        const open = Math.max(0.07, eyeOpen);
-        octx.beginPath();
-        octx.ellipse(ex, ey, R * 0.145, R * 0.135 * open, 0, 0, Math.PI * 2);
-        octx.fillStyle = coat.iris;
-        octx.fill();
-        octx.lineWidth = R * 0.018;
-        octx.strokeStyle = `rgba(${INK},0.6)`;
-        octx.stroke();
-        if (eyeOpen > 0.3) {
+
+        // 평상시 타원 눈 — arcFade가 1에 가까우면 페이드아웃
+        if (arcFade < 0.999) {
+          const open = Math.max(0.07, eyeOpen * (1 - content * 0.35));  // 미묘한 감김
+          octx.save();
+          octx.globalAlpha = 1 - arcFade;
           octx.beginPath();
-          octx.arc(ex + lookX * R * 0.03, ey + lookY * R * 0.02,
-                   R * 0.055 * Math.min(1, eyeOpen + 0.2), 0, Math.PI * 2);
-          octx.fillStyle = `rgba(${INK},0.97)`;
+          octx.ellipse(ex, ey, R * 0.145, R * 0.135 * open, 0, 0, Math.PI * 2);
+          octx.fillStyle = coat.iris;
           octx.fill();
-          octx.fillStyle = 'rgba(255,252,244,0.95)';
+          if (eyeOpen > 0.3) {
+            octx.save();
+            octx.clip();   // 동공·하이라이트가 홍채 밖으로 새지 않게
+            octx.beginPath();
+            octx.arc(ex + lookX * R * 0.03, ey + lookY * R * 0.02,
+                     R * 0.055 * Math.min(1, eyeOpen + 0.2), 0, Math.PI * 2);
+            octx.fillStyle = `rgba(${INK},0.97)`;
+            octx.fill();
+            octx.fillStyle = 'rgba(255,252,244,0.95)';
+            octx.beginPath();
+            octx.arc(ex - R * 0.04, ey - R * 0.045 * open, R * 0.024, 0, Math.PI * 2);
+            octx.fill();
+            octx.beginPath();
+            octx.arc(ex + R * 0.045, ey + R * 0.03 * open, R * 0.011, 0, Math.PI * 2);
+            octx.fill();
+            octx.restore();  // 클립 해제
+          }
+          // 테두리 — 깜빡임으로 open이 작아지면 알파를 줄여 지저분함 제거
+          octx.lineWidth = R * 0.018;
+          octx.strokeStyle = `rgba(${INK},${0.6 * Math.min(1, open / 0.25)})`;
           octx.beginPath();
-          octx.arc(ex - R * 0.04, ey - R * 0.045 * open, R * 0.024, 0, Math.PI * 2);
-          octx.fill();
+          octx.ellipse(ex, ey, R * 0.145, R * 0.135 * open, 0, 0, Math.PI * 2);
+          octx.stroke();
+          octx.restore();  // globalAlpha 복원
+        }
+
+        // 행복 눈웃음 아크 — content가 0.6→1로 갈수록 나타남
+        if (arcFade > 0.001) {
+          octx.save();
+          octx.globalAlpha = arcFade;
+          octx.strokeStyle = `rgba(${INK},0.75)`;
+          octx.lineWidth = R * 0.028;
+          octx.lineCap = 'round';
           octx.beginPath();
-          octx.arc(ex + R * 0.045, ey + R * 0.03 * open, R * 0.011, 0, Math.PI * 2);
-          octx.fill();
+          octx.moveTo(ex - R * 0.10, ey);
+          octx.quadraticCurveTo(ex, ey + R * 0.075, ex + R * 0.10, ey);
+          octx.stroke();
+          octx.restore();
         }
       }
 
@@ -954,6 +983,11 @@ function makeTail(path, count) {
     nodes.push({ x, y, px: x, py: y, rx: x, ry: y });
   }
   return { nodes, seg: step, stiff: 0.12 };
+}
+
+function smoothstep(a, b, x) {
+  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
 }
 
 function smoothPath(octx, nodes) {
