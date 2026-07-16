@@ -6,6 +6,7 @@ const DEFAULT = () => ({
   cat: null,            // { breed: 0-3, name: string, adoptedAt: ISO }
   jelly: 0,             // 재화 🐾
   love: 0,              // 애정도 경험치
+  equipped: null,       // 착용 액세서리 id | null
   streak: { count: 0, last: null },
   stats: { fed: 0, laserBest: 0, laserCatches: 0 },
 });

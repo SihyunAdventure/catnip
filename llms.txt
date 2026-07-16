@@ -16,4 +16,8 @@
 - [The Box minigame](https://catnip.fun/play/box) — time the jump as the box passes by
 - [Grooming minigame](https://catnip.fun/play/groom) — brush out the tangles and hear the purr
 - [Cat book](https://catnip.fun/cats) — browse every breed you've collected
+- [Cheese tabby (Korean shorthair)](https://catnip.fun/cats/cheese-tabby) — the orange/ginger/marmalade tabby: coat, markings, and personality, with a live petting demo
+- [Mackerel tabby (Korean shorthair)](https://catnip.fun/cats/mackerel-tabby) — the silver-grey fish-boned striped tabby: coat and personality, with a live petting demo
+- [Calico cat](https://catnip.fun/cats/calico) — the tricolor white/black/orange cat: coat genetics and personality, with a live petting demo
+- [Tuxedo cat](https://catnip.fun/cats/tuxedo) — the black-and-white bicolor cat: coat and personality, with a live petting demo
 - [Source code](https://github.com/SihyunAdventure/catnip)

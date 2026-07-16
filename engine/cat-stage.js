@@ -117,8 +117,9 @@ const F_K = 0.14, F_C = 0.11;
 const T_STEPS = 5;
 
 export class CatStage {
-  constructor({ tl, gl, ov, breeds = [0], initialIndex = 0 }) {
+  constructor({ tl, gl, ov, breeds = [0], initialIndex = 0, accessory = null }) {
     this.tlC = tl; this.ovC = ov; this.glC = gl;
+    this.accessory = accessory;
     this.tctx = tl.getContext('2d');
     this.octx = ov.getContext('2d');
     this.gl = gl.getContext('webgl2', { antialias: true, alpha: true, premultipliedAlpha: true, preserveDrawingBuffer: true });
@@ -646,6 +647,7 @@ void main(){ o = vC; }`);
     if (this.onIndexChange) this.onIndexChange(this.index);
   }
   setExtraOffset(x, y) { this.extra.x = x; this.extra.y = y; }
+  setAccessory(id) { this.accessory = id || null; }
   excite(n = 3) { this._tailImpulse += n; }
   react(type = 'happy') {
     const c = this.catCenter();
@@ -927,6 +929,8 @@ void main(){ o = vC; }`);
         smoothPath(octx, s.nodes);
         octx.stroke();
       }
+
+      if (this.accessory) this._drawAccessory(octx, CX, R);
     }
 
     octx.restore();
@@ -948,6 +952,64 @@ void main(){ o = vC; }`);
       this.onFrame(t, octx, { W, H, center: this.catCenter() });
       octx.restore();
     }
+  }
+
+  // ── 액세서리 (머리 중심 CX·this.CY·R 상대 좌표, 종이 톤 팔레트) ──
+  _drawAccessory(octx, CX, R) {
+    const CY = this.CY;
+    octx.save();
+    octx.lineJoin = 'round';
+    if (this.accessory === 'ribbon' || this.accessory === 'bowtie') {
+      const isBow = this.accessory === 'ribbon';
+      const cy = CY + R * (isBow ? 0.72 : 0.75);
+      const wingW = R * (isBow ? 0.30 : 0.26), wingH = R * (isBow ? 0.16 : 0.13);
+      octx.fillStyle = isBow ? '#a44a2a' : `rgba(${INK},0.92)`;
+      octx.strokeStyle = isBow ? '#8f3d22' : `rgba(${INK},0.9)`;
+      octx.lineWidth = R * 0.02;
+      for (const side of [-1, 1]) {
+        octx.beginPath();
+        octx.moveTo(CX, cy);
+        octx.lineTo(CX + side * wingW, cy - wingH);
+        octx.lineTo(CX + side * wingW, cy + wingH);
+        octx.closePath();
+        octx.fill(); octx.stroke();
+      }
+      octx.beginPath();
+      octx.arc(CX, cy, R * 0.06, 0, Math.PI * 2);
+      octx.fillStyle = isBow ? '#8f3d22' : `rgba(${INK},0.98)`;
+      octx.fill();
+    } else if (this.accessory === 'beret') {
+      octx.save();
+      octx.translate(CX + R * 0.15, CY - R * 0.78);
+      octx.rotate(-0.22);
+      octx.fillStyle = '#6f6350';
+      octx.strokeStyle = `rgba(${INK},0.4)`;
+      octx.lineWidth = R * 0.015;
+      octx.beginPath();
+      octx.ellipse(0, 0, R * 0.5, R * 0.2, 0, 0, Math.PI * 2);
+      octx.fill(); octx.stroke();
+      octx.beginPath();
+      octx.arc(0, -R * 0.17, R * 0.05, 0, Math.PI * 2);
+      octx.fillStyle = '#6f6350';
+      octx.fill();
+      octx.restore();
+    } else if (this.accessory === 'crown') {
+      const cy = CY - R * 0.85, hw = R * 0.34, peak = R * 0.26, baseY = cy + peak * 0.55;
+      octx.fillStyle = '#c9a13b';
+      octx.strokeStyle = '#a8842b';
+      octx.lineWidth = R * 0.015;
+      octx.beginPath();
+      octx.moveTo(CX - hw, baseY);
+      octx.lineTo(CX - hw * 0.7, cy);
+      octx.lineTo(CX - hw * 0.35, cy + peak * 0.4);
+      octx.lineTo(CX, cy - peak * 0.18);
+      octx.lineTo(CX + hw * 0.35, cy + peak * 0.4);
+      octx.lineTo(CX + hw * 0.7, cy);
+      octx.lineTo(CX + hw, baseY);
+      octx.closePath();
+      octx.fill(); octx.stroke();
+    }
+    octx.restore();
   }
 }
 

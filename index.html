@@ -143,6 +143,10 @@
   .gamecard .gname{font-size:13px;font-weight:600}
   .gamecard .gdesc{font-size:10.5px;color:var(--ink-soft);line-height:1.4}
   .gamecard.catbook{width:284px;margin-top:2px;background:var(--paper-hi)}
+  .gamecard .dressState{margin-left:auto;font-size:14px}
+  .gamecard.locked{opacity:.5;cursor:default}
+  .gamecard.locked:hover{background:var(--paper);border-color:var(--ink)}
+  .gamecard.equipped{border-color:var(--rust);background:var(--paper-hi)}
 </style>
 </head>
 <body>
@@ -182,6 +186,7 @@
       </div>
       <div class="bottom ui">
         <button class="btn" id="feedBtn"></button>
+        <button class="btn" id="dressBtn"></button>
         <button class="btn" id="playBtn"></button>
         <button class="btn" id="shareBtn" data-i18n="hub.share"></button>
       </div>
@@ -197,6 +202,15 @@
           <span class="gtext"><span class="gname" id="catbookName"></span><span class="gdesc" id="catbookDesc"></span></span>
         </a>
         <button class="btn" id="gameClose"></button>
+      </div>
+    </div>
+
+    <!-- 꾸미기 -->
+    <div id="dressUI" class="panel ui hidden">
+      <div class="card">
+        <h2 id="dressTitle"></h2>
+        <div class="gamelist" id="dressList"></div>
+        <button class="btn" id="dressClose"></button>
       </div>
     </div>
 
@@ -226,7 +240,8 @@
   <a href="/play/balance">cat balance</a>, dangle a <a href="/play/fishing">fishing rod</a>
   and let them grab it, tap along to a <a href="/play/knead">kneading</a> rhythm, time the jump
   in <a href="/play/box">the box</a>, or brush out the tangles in a <a href="/play/groom">grooming</a>
-  session. Browse every breed you've met so far in the <a href="/cats">cat book</a>.
+  session. Slip into the <a href="/focus">quiet room</a> to focus while your cat naps and earn a big
+  jelly reward. Browse every breed you've met so far in the <a href="/cats">cat book</a>.
   No install, no login, free.</p>
   <p>catnip은 브라우저에서 바로 하는 무료 고양이 게임입니다. 고양이를 입양해 이름을 지어주고,
   쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓여요. 미니게임도 여덟 가지 즐길 수 있어요 —
@@ -238,6 +253,7 @@
   <a href="/play/knead">꾹꾹이</a> 리듬에 맞춰 탭하고,
   <a href="/play/box">박스</a> 게임에서 타이밍 맞춰 폴짝 뛰고,
   <a href="/play/groom">빗질</a>로 엉킨 털을 골라주세요.
+  <a href="/focus">조용한 방</a>에서 고양이가 자는 동안 집중하면 젤리를 듬뿍 받아요.
   그동안 만난 품종은 <a href="/cats">도감</a>에서 모아볼 수 있어요.
   모든 고양이는 이미지 없이 코드만으로 그려집니다 — WebGL 인스턴싱으로 렌더링되는 25,000가닥의 털.
   설치도 로그인도 없습니다.</p>
@@ -276,6 +292,7 @@ function updateHUD() {
     $('lvN').textContent = level;
     $('lvFill').style.width = `${Math.round(progress * 100)}%`;
     $('feedBtn').textContent = `${t('hub.feed')} −${FEED_COST}🐾`;
+    $('dressBtn').textContent = DRESS_UI[DL()].title;
     $('playBtn').textContent = `${t('hub.play')} →`;
   }
 }
@@ -306,6 +323,9 @@ const GAMES = [
   { href: 'play/groom.html', emoji: '🧶',
     en: { name: 'Grooming', desc: 'Brush out the tangles, hear the purr.' },
     ko: { name: '빗질', desc: '엉킨 털을 빗어주면 골골골.' } },
+  { href: 'focus.html', emoji: '🌙',
+    en: { name: 'Quiet Room', desc: 'Focus while your cat naps — big jelly.' },
+    ko: { name: '조용한 방', desc: '고양이가 자는 동안 집중 — 젤리 대량.' } },
 ];
 const GAME_UI = {
   en: { title: 'pick a game', close: 'close', catbookName: 'Cat Book', catbookDesc: 'Browse every breed you can collect.' },
@@ -339,6 +359,64 @@ function buildGameMenu() {
 function openGameMenu() {
   buildGameMenu();
   $('gameUI').classList.remove('hidden');
+}
+
+// ── 꾸미기(액세서리) 모달 ──────────────────────────────────
+const ACCESSORIES = [
+  { id: 'ribbon', emoji: '🎀', level: 2, en: { name: 'Ribbon' }, ko: { name: '리본' } },
+  { id: 'beret', emoji: '👒', level: 3, en: { name: 'Beret' }, ko: { name: '베레모' } },
+  { id: 'bowtie', emoji: '🤵', level: 4, en: { name: 'Bow Tie' }, ko: { name: '나비넥타이' } },
+  { id: 'crown', emoji: '👑', level: 5, en: { name: 'Crown' }, ko: { name: '왕관' } },
+];
+const DRESS_UI = {
+  en: { title: 'dress up', close: 'close', wear: 'wear', wearing: 'wearing', unlocked: 'unlocked!',
+        locked: (n) => `lv.${n} to unlock` },
+  ko: { title: '꾸미기', close: '닫기', wear: '착용', wearing: '착용 중', unlocked: '언락!',
+        locked: (n) => `lv.${n} 필요` },
+};
+const DL = () => (lang === 'ko' ? 'ko' : 'en');
+let dressReady = false;
+function renderDressList() {
+  const L = DL();
+  const { level } = store.loveLevel(state.love);
+  const list = $('dressList');
+  list.innerHTML = '';
+  for (const a of ACCESSORIES) {
+    const unlocked = level >= a.level;
+    const equipped = state.equipped === a.id;
+    const btn = document.createElement('button');
+    btn.className = 'gamecard' + (unlocked ? '' : ' locked') + (equipped ? ' equipped' : '');
+    btn.innerHTML = `<span class="emoji">${a.emoji}</span>` +
+      `<span class="gtext"><span class="gname"></span><span class="gdesc"></span></span>` +
+      `<span class="dressState"></span>`;
+    btn.querySelector('.gname').textContent = a[L].name;
+    btn.querySelector('.gdesc').textContent =
+      unlocked ? (equipped ? DRESS_UI[L].wearing : DRESS_UI[L].wear) : DRESS_UI[L].locked(a.level);
+    btn.querySelector('.dressState').textContent = unlocked ? (equipped ? '✓' : '') : '🔒';
+    if (unlocked) {
+      btn.onclick = () => {
+        const next = equipped ? null : a.id;
+        state = store.mutate((s) => { s.equipped = next; });
+        if (stage) stage.setAccessory(next);
+        renderDressList();
+      };
+    }
+    list.appendChild(btn);
+  }
+}
+function openDressMenu() {
+  const L = DL();
+  $('dressTitle').textContent = DRESS_UI[L].title;
+  $('dressClose').textContent = DRESS_UI[L].close;
+  if (!dressReady) {
+    $('dressClose').onclick = () => $('dressUI').classList.add('hidden');
+    $('dressUI').addEventListener('pointerdown', (e) => {
+      if (e.target === $('dressUI')) $('dressUI').classList.add('hidden');
+    });
+    dressReady = true;
+  }
+  renderDressList();
+  $('dressUI').classList.remove('hidden');
 }
 
 function makeStage(breeds, initialIndex = 0) {
@@ -404,6 +482,7 @@ function enterAdoption(initialIndex = 0) {
 function enterHub(justAdopted = false) {
   $('adoptUI').classList.add('hidden');
   makeStage([state.cat.breed]);
+  stage.setAccessory(state.equipped);
   $('hubUI').classList.remove('hidden');
   $('jellyBox').classList.remove('hidden');
   updateHUD();
@@ -419,15 +498,24 @@ function enterHub(justAdopted = false) {
 
   $('feedBtn').onclick = () => {
     if (state.jelly < FEED_COST) { toast(t('hub.noJelly')); return; }
+    const before = store.loveLevel(state.love).level;
     state = store.mutate((s) => {
       s.jelly -= FEED_COST;
       s.love += FEED_LOVE;
       s.stats.fed++;
     });
+    const after = store.loveLevel(state.love).level;
     stage.react('happy');
     toast(t('feed.toast', { n: FEED_LOVE }));
     updateHUD();
+    const unlocked = ACCESSORIES.find((a) => a.level > before && a.level <= after);
+    if (unlocked) {
+      const L = DL();
+      setTimeout(() => toast(`lv.${unlocked.level} — ${unlocked[L].name} ${DRESS_UI[L].unlocked}`), 1500);
+    }
   };
+
+  $('dressBtn').onclick = () => openDressMenu();
 
   $('playBtn').onclick = () => openGameMenu();
 
