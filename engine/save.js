@@ -9,6 +9,7 @@ const DEFAULT = () => ({
   equipped: null,       // 착용 액세서리 id | null
   streak: { count: 0, last: null },
   stats: { fed: 0, laserBest: 0, laserCatches: 0 },
+  care: { items: [], log: {} },   // items:[{id,label}] 최대 3개 · log:{'YYYY-MM-DD':[체크된 id...]}
 });
 
 export function load() {
@@ -17,7 +18,7 @@ export function load() {
     if (!raw) return DEFAULT();
     const s = JSON.parse(raw);
     if (s.v !== 1) return DEFAULT();          // 마이그레이션은 버전 추가 시
-    return { ...DEFAULT(), ...s, streak: { ...DEFAULT().streak, ...s.streak }, stats: { ...DEFAULT().stats, ...s.stats } };
+    return { ...DEFAULT(), ...s, streak: { ...DEFAULT().streak, ...s.streak }, stats: { ...DEFAULT().stats, ...s.stats }, care: { ...DEFAULT().care, ...s.care } };
   } catch { return DEFAULT(); }
 }
 

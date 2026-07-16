@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>catnip — cats you can actually pet</title>
+<title>catnip — a tiny self-care companion, with a cat</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐱</text></svg>">
-<meta name="description" content="catnip is a free browser game where you adopt, pet, and raise a virtual cat. 쓰다듬으면 찰랑거리는 나만의 고양이를 입양하세요.">
+<meta name="description" content="check in on yourself, and your cat grows. 나를 돌보면 고양이가 자라는 힐링 컴패니언.">
 <meta property="og:title" content="catnip">
-<meta property="og:description" content="cats you can actually pet. 쓰다듬으면 찰랑거리는 고양이.">
+<meta property="og:description" content="check in on yourself, and your cat grows. 나를 돌보면 고양이가 자라는 힐링 컴패니언.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebApplication","name":"catnip",
- "applicationCategory":"GameApplication","operatingSystem":"Web",
- "description":"A free browser game where you adopt, pet, and raise a virtual cat rendered with 25,000 fur strands in WebGL.",
+ "applicationCategory":"LifestyleApplication","operatingSystem":"Web",
+ "description":"A gentle self-care companion: check in on your daily habits and your virtual cat, rendered with 25,000 fur strands in WebGL, grows with you.",
  "offers":{"@type":"Offer","price":"0"}}
 </script>
 <style>
@@ -147,6 +147,51 @@
   .gamecard.locked{opacity:.5;cursor:default}
   .gamecard.locked:hover{background:var(--paper);border-color:var(--ink)}
   .gamecard.equipped{border-color:var(--rust);background:var(--paper-hi)}
+
+  /* 오늘의 돌봄 체크인 카드 */
+  .checkin{
+    position:absolute;top:64px;left:28px;
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:12px 14px;display:flex;flex-direction:column;gap:9px;
+    font-family:var(--mono);max-width:214px;
+  }
+  .checkin .ck-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .checkin .ck-title{font-size:11px;letter-spacing:.06em;font-weight:600;color:var(--ink)}
+  .checkin .ck-gear{
+    appearance:none;border:none;background:none;cursor:pointer;
+    font-size:12px;line-height:1;padding:0;color:var(--ink-soft);
+  }
+  .checkin .ck-list{display:flex;flex-direction:column;gap:6px}
+  .checkin .ck-item{
+    appearance:none;display:flex;align-items:center;gap:8px;text-align:left;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+    font-family:var(--mono);font-size:11px;padding:7px 9px;cursor:pointer;
+  }
+  .checkin .ck-item:hover{border-color:var(--rust)}
+  .checkin .ck-item.checked{opacity:.55;cursor:default;background:var(--paper-hi)}
+  .checkin .ck-box{
+    width:14px;height:14px;flex:none;border:1px solid var(--ink);
+    display:grid;place-items:center;font-size:10px;line-height:1;
+  }
+  .checkin .ck-item.checked .ck-box{background:var(--rust);color:var(--paper-hi);border-color:var(--rust)}
+  .checkin .ck-label{line-height:1.35}
+  .checkin .ck-set{
+    appearance:none;border:1px solid var(--ink);background:var(--paper);color:var(--rust);
+    font-family:var(--mono);font-size:11px;padding:8px 10px;cursor:pointer;text-align:left;
+  }
+  .checkin .ck-set:hover{background:var(--paper-hi);border-color:var(--rust)}
+
+  /* 돌봄 설정 패널 */
+  .preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:280px}
+  .preset{
+    appearance:none;display:flex;align-items:center;gap:8px;text-align:left;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+    font-family:var(--mono);font-size:11px;line-height:1.3;padding:9px 10px;cursor:pointer;
+  }
+  .preset .p-emoji{font-size:16px;line-height:1;flex:none}
+  .preset:hover{border-color:var(--rust)}
+  .preset.sel{background:var(--rust);color:var(--paper-hi);border-color:var(--rust)}
+  .care-sub{font-size:11px;color:var(--ink-soft);max-width:280px;text-align:center;line-height:1.6}
 </style>
 </head>
 <body>
@@ -179,6 +224,13 @@
 
     <!-- 허브 모드 -->
     <div id="hubUI" class="hidden">
+      <div id="checkinCard" class="checkin ui hidden">
+        <div class="ck-head">
+          <span class="ck-title" id="ckTitle"></span>
+          <button class="ck-gear hidden" id="ckGear" aria-label="edit care">⚙</button>
+        </div>
+        <div class="ck-list" id="ckList"></div>
+      </div>
       <div class="lovebar">
         <span id="myName"></span>
         <span class="lv"><span data-i18n="hub.level"></span><span id="lvN">1</span></span>
@@ -214,6 +266,17 @@
       </div>
     </div>
 
+    <!-- 돌봄 정하기 -->
+    <div id="careSetupUI" class="panel ui hidden">
+      <form class="card" id="careForm">
+        <h2 id="careSetupTitle"></h2>
+        <div class="care-sub" id="careSetupSub"></div>
+        <div class="preset-grid" id="presetGrid"></div>
+        <input id="careCustom" maxlength="20" autocomplete="off">
+        <button class="btn primary" type="submit" id="careDone"></button>
+      </form>
+    </div>
+
     <!-- 이름 짓기 -->
     <div id="nameUI" class="panel ui hidden">
       <form class="card" id="nameForm">
@@ -230,21 +293,25 @@
 
 <section class="about">
   <h2 data-i18n="about.title">about catnip</h2>
-  <p>catnip is a free browser game where you adopt, pet, and raise a virtual cat.
-  Every cat is drawn entirely in code — about 25,000 fur strands rendered in a single WebGL
-  draw call, with spring-field physics that makes the fur part and ripple under your cursor.
-  Pet your cat until it purrs and feed it to grow your bond. There are eight minigames to play:
-  chase the <a href="/play/laser">laser pointer</a> to earn jelly 🐾, crown a winner in the
+  <p>catnip is a tiny self-care companion, with a cat. Adopt one, then check in on yourself
+  each day — drink a glass of water, take a short walk, breathe. Tend to the small things and
+  your cat grows: it's drawn entirely in code, about 25,000 fur strands in a single WebGL draw
+  call, with spring-field physics that parts and ripples the fur under your cursor. Pet it until
+  it purrs, feed it, and slip into the <a href="/focus">quiet room</a> to focus while it naps.
+  When you need a breather there are eight little games to rest with: chase the
+  <a href="/play/laser">laser pointer</a> to earn jelly 🐾, crown a winner in the
   <a href="/play/worldcup">cutie world cup</a>, meet your match in the
   <a href="/play/quiz">which-cat-are-you quiz</a>, settle feline dilemmas in
   <a href="/play/balance">cat balance</a>, dangle a <a href="/play/fishing">fishing rod</a>
   and let them grab it, tap along to a <a href="/play/knead">kneading</a> rhythm, time the jump
   in <a href="/play/box">the box</a>, or brush out the tangles in a <a href="/play/groom">grooming</a>
-  session. Slip into the <a href="/focus">quiet room</a> to focus while your cat naps and earn a big
-  jelly reward. Browse every breed you've met so far in the <a href="/cats">cat book</a>.
+  session. Browse every breed you've met so far in the <a href="/cats">cat book</a>.
   No install, no login, free.</p>
-  <p>catnip은 브라우저에서 바로 하는 무료 고양이 게임입니다. 고양이를 입양해 이름을 지어주고,
-  쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓여요. 미니게임도 여덟 가지 즐길 수 있어요 —
+  <p>catnip은 나를 돌보면 고양이가 자라는 작은 힐링 컴패니언이에요. 고양이를 입양해 이름을 지어주고,
+  매일 나를 조금씩 돌봐요 — 물 한 잔 마시기, 5분 산책, 심호흡처럼 작은 것들을요. 챙긴 만큼 고양이가
+  자라납니다. 쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓이고,
+  <a href="/focus">조용한 방</a>에서 고양이가 자는 동안 집중하면 젤리를 듬뿍 받아요.
+  쉬어가고 싶을 땐 여덟 가지 놀이도 있어요 —
   <a href="/play/laser">레이저 포인터</a>로 놀아 젤리 🐾를 모으고,
   <a href="/play/worldcup">귀요미 월드컵</a>에서 최고의 고양이를 뽑고,
   <a href="/play/quiz">닮은 고양이 퀴즈</a>로 나와 닮은 고양이를 찾고,
@@ -253,7 +320,6 @@
   <a href="/play/knead">꾹꾹이</a> 리듬에 맞춰 탭하고,
   <a href="/play/box">박스</a> 게임에서 타이밍 맞춰 폴짝 뛰고,
   <a href="/play/groom">빗질</a>로 엉킨 털을 골라주세요.
-  <a href="/focus">조용한 방</a>에서 고양이가 자는 동안 집중하면 젤리를 듬뿍 받아요.
   그동안 만난 품종은 <a href="/cats">도감</a>에서 모아볼 수 있어요.
   모든 고양이는 이미지 없이 코드만으로 그려집니다 — WebGL 인스턴싱으로 렌더링되는 25,000가닥의 털.
   설치도 로그인도 없습니다.</p>
@@ -419,6 +485,137 @@ function openDressMenu() {
   $('dressUI').classList.remove('hidden');
 }
 
+// ── 오늘의 돌봄 체크인 ─────────────────────────────────────
+const CARE_PRESETS = [
+  { id: 'water',   emoji: '💧', en: 'drink a glass of water', ko: '물 한 잔 마시기' },
+  { id: 'walk',    emoji: '🚶', en: 'a 5-minute walk',        ko: '5분 산책' },
+  { id: 'stretch', emoji: '🙆', en: 'stretch',                ko: '스트레칭' },
+  { id: 'sleep',   emoji: '🌙', en: 'go to bed early',        ko: '일찍 자기' },
+  { id: 'read',    emoji: '📖', en: 'read a few pages',       ko: '책 몇 쪽 읽기' },
+  { id: 'tidy',    emoji: '🧹', en: 'tidy your space',        ko: '방 정리' },
+  { id: 'breathe', emoji: '🌬', en: 'three deep breaths',     ko: '심호흡 3번' },
+  { id: 'meal',    emoji: '🍚', en: 'eat one good meal',      ko: '오늘 한 끼 잘 챙기기' },
+];
+const CARE_UI = {
+  en: { setupTitle: 'what will you care for today?',
+        setupSub: 'pick 1–3 small things. tend to yourself, and your cat grows.',
+        custom: 'your own (optional)', done: 'done',
+        cardTitle: "today's care", setPrompt: 'set your care →',
+        progress: (a, b) => `today's care ${a}/${b}`,
+        checkToast: 'nice — +3🐾 +5♥', allDone: 'you took care of you today 🐾',
+        needOne: 'pick at least one' },
+  ko: { setupTitle: '오늘은 무엇을 돌볼까요?',
+        setupSub: '작은 것 1~3개를 골라요. 나를 돌보면 고양이가 자라요.',
+        custom: '직접 적기 (선택)', done: '완료',
+        cardTitle: '오늘의 돌봄', setPrompt: '돌봄 정하기 →',
+        progress: (a, b) => `오늘의 돌봄 ${a}/${b}`,
+        checkToast: '잘했어요 +3🐾 +5♥', allDone: '오늘도 나를 돌봤다 🐾',
+        needOne: '하나 이상 골라주세요' },
+};
+const CL = () => (lang === 'ko' ? 'ko' : 'en');
+let careSelected = new Set();
+
+function renderCheckin() {
+  if (!state.cat) return;
+  const L = CL();
+  const card = $('checkinCard');
+  const list = $('ckList');
+  const gear = $('ckGear');
+  card.classList.remove('hidden');
+  list.innerHTML = '';
+  const items = state.care.items || [];
+  if (!items.length) {
+    $('ckTitle').textContent = CARE_UI[L].cardTitle;
+    gear.classList.add('hidden');
+    const b = document.createElement('button');
+    b.className = 'ck-set';
+    b.textContent = CARE_UI[L].setPrompt;
+    b.onclick = openCareSetup;
+    list.appendChild(b);
+    return;
+  }
+  const done = (state.care.log && state.care.log[store.todayStr()]) || [];
+  const doneCount = items.filter((i) => done.includes(i.id)).length;
+  $('ckTitle').textContent = CARE_UI[L].progress(doneCount, items.length);
+  gear.classList.remove('hidden');
+  gear.onclick = openCareSetup;
+  for (const it of items) {
+    const checked = done.includes(it.id);
+    const btn = document.createElement('button');
+    btn.className = 'ck-item' + (checked ? ' checked' : '');
+    btn.disabled = checked;
+    btn.innerHTML = '<span class="ck-box"></span><span class="ck-label"></span>';
+    btn.querySelector('.ck-box').textContent = checked ? '✓' : '';
+    btn.querySelector('.ck-label').textContent = it.label;
+    if (!checked) btn.onclick = () => checkCare(it.id);
+    list.appendChild(btn);
+  }
+}
+
+function checkCare(id) {
+  const today = store.todayStr();
+  const items = state.care.items || [];
+  let nowAll = false;
+  state = store.mutate((s) => {
+    const log = s.care.log[today] || (s.care.log[today] = []);
+    if (log.includes(id)) return;
+    log.push(id);
+    s.jelly += 3;
+    s.love += 5;
+    if (items.every((i) => log.includes(i.id))) { s.jelly += 5; nowAll = true; }
+  });
+  if (stage) stage.react('happy');
+  toast(CARE_UI[CL()].checkToast);
+  updateHUD();
+  renderCheckin();
+  if (nowAll) setTimeout(() => toast(CARE_UI[CL()].allDone), 1600);
+}
+
+function openCareSetup() {
+  const L = CL();
+  $('careSetupTitle').textContent = CARE_UI[L].setupTitle;
+  $('careSetupSub').textContent = CARE_UI[L].setupSub;
+  $('careCustom').placeholder = CARE_UI[L].custom;
+  $('careCustom').value = '';
+  $('careDone').textContent = CARE_UI[L].done;
+  careSelected = new Set((state.care.items || []).map((i) => i.id));
+  const grid = $('presetGrid');
+  grid.innerHTML = '';
+  for (const p of CARE_PRESETS) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'preset' + (careSelected.has(p.id) ? ' sel' : '');
+    btn.innerHTML = `<span class="p-emoji">${p.emoji}</span><span class="p-label"></span>`;
+    btn.querySelector('.p-label').textContent = p[L];
+    btn.onclick = () => {
+      if (careSelected.has(p.id)) careSelected.delete(p.id);
+      else { if (careSelected.size >= 3) return; careSelected.add(p.id); }
+      btn.classList.toggle('sel', careSelected.has(p.id));
+    };
+    grid.appendChild(btn);
+  }
+  $('careSetupUI').classList.remove('hidden');
+}
+
+$('careForm').onsubmit = (e) => {
+  e.preventDefault();
+  const L = CL();
+  const items = [];
+  for (const p of CARE_PRESETS)
+    if (careSelected.has(p.id)) items.push({ id: p.id, label: `${p.emoji} ${p[L]}` });
+  const custom = $('careCustom').value.trim();
+  if (custom) items.push({ id: 'c' + Date.now(), label: custom });
+  const final = items.slice(0, 3);
+  if (!final.length) { toast(CARE_UI[L].needOne); return; }
+  state = store.mutate((s) => { s.care.items = final; });
+  $('careSetupUI').classList.add('hidden');
+  renderCheckin();
+};
+$('careSetupUI').addEventListener('pointerdown', (e) => {
+  if (e.target === $('careSetupUI') && (state.care.items || []).length)
+    $('careSetupUI').classList.add('hidden');
+});
+
 function makeStage(breeds, initialIndex = 0) {
   if (stage) stage.destroy();
   try {
@@ -486,9 +683,11 @@ function enterHub(justAdopted = false) {
   $('hubUI').classList.remove('hidden');
   $('jellyBox').classList.remove('hidden');
   updateHUD();
+  renderCheckin();
 
   if (justAdopted) {
     setTimeout(() => { stage.react('happy'); toast(`${t('adopt.confirm')}, ${state.cat.name} ♥`); }, 600);
+    if (!(state.care.items || []).length) setTimeout(openCareSetup, 2600);
   } else {
     const r = store.checkStreak();
     state = r.state;
