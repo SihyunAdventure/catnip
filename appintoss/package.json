@@ -1,0 +1,16 @@
+{
+  "name": "catdeworld",
+  "version": "0.1.0",
+  "private": true,
+  "description": "캣데월드 — catnip 의 앱인토스(Apps in Toss) 미니앱 빌드",
+  "type": "module",
+  "scripts": {
+    "dev": "granite dev",
+    "build": "ait build",
+    "deploy": "ait deploy"
+  },
+  "dependencies": {
+    "@apps-in-toss/web-framework": "^2.10.6"
+  },
+  "devDependencies": {}
+}
