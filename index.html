@@ -129,6 +129,19 @@
   }
   .about h2{font-family:var(--serif);font-weight:500;color:var(--ink);font-size:20px}
   .about a{color:var(--rust)}
+
+  .gamelist{display:flex;flex-direction:column;gap:10px;width:284px}
+  .gamecard{
+    display:flex;align-items:center;gap:14px;text-align:left;
+    border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+    font-family:var(--mono);padding:12px 14px;cursor:pointer;text-decoration:none;
+  }
+  .gamecard:hover{background:var(--paper-hi);border-color:var(--rust)}
+  .gamecard:focus-visible{outline:2px solid var(--rust);outline-offset:-2px}
+  .gamecard .emoji{font-size:24px;line-height:1;flex:none}
+  .gamecard .gtext{display:flex;flex-direction:column;gap:3px}
+  .gamecard .gname{font-size:13px;font-weight:600}
+  .gamecard .gdesc{font-size:10.5px;color:var(--ink-soft);line-height:1.4}
 </style>
 </head>
 <body>
@@ -173,6 +186,15 @@
       </div>
     </div>
 
+    <!-- 게임 선택 -->
+    <div id="gameUI" class="panel ui hidden">
+      <div class="card">
+        <h2 id="gameTitle"></h2>
+        <div class="gamelist" id="gameList"></div>
+        <button class="btn" id="gameClose"></button>
+      </div>
+    </div>
+
     <!-- 이름 짓기 -->
     <div id="nameUI" class="panel ui hidden">
       <form class="card" id="nameForm">
@@ -192,10 +214,17 @@
   <p>catnip is a free browser game where you adopt, pet, and raise a virtual cat.
   Every cat is drawn entirely in code — about 25,000 fur strands rendered in a single WebGL
   draw call, with spring-field physics that makes the fur part and ripple under your cursor.
-  Pet your cat until it purrs, play the laser pointer to earn jelly 🐾, and feed it to grow your bond.
-  No install, no login, free.</p>
+  Pet your cat until it purrs and feed it to grow your bond. There are four minigames to play:
+  chase the <a href="/play/laser">laser pointer</a> to earn jelly 🐾, crown a winner in the
+  <a href="/play/worldcup">cutie world cup</a>, meet your match in the
+  <a href="/play/quiz">which-cat-are-you quiz</a>, or settle feline dilemmas in
+  <a href="/play/balance">cat balance</a>. No install, no login, free.</p>
   <p>catnip은 브라우저에서 바로 하는 무료 고양이 게임입니다. 고양이를 입양해 이름을 지어주고,
-  쓰다듬으면 골골거리고, 레이저 포인터로 놀아주면 젤리 🐾를 벌어 간식을 줄 수 있어요.
+  쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓여요. 미니게임도 네 가지 즐길 수 있어요 —
+  <a href="/play/laser">레이저 포인터</a>로 놀아 젤리 🐾를 모으고,
+  <a href="/play/worldcup">귀요미 월드컵</a>에서 최고의 고양이를 뽑고,
+  <a href="/play/quiz">닮은 고양이 퀴즈</a>로 나와 닮은 고양이를 찾고,
+  <a href="/play/balance">냥 밸런스</a>로 고양이 밸런스 게임을 즐겨보세요.
   모든 고양이는 이미지 없이 코드만으로 그려집니다 — WebGL 인스턴싱으로 렌더링되는 25,000가닥의 털.
   설치도 로그인도 없습니다.</p>
   <p><a href="https://github.com/SihyunAdventure/catnip">GitHub</a></p>
@@ -237,6 +266,53 @@ function updateHUD() {
   }
 }
 
+// ── 게임 선택 모달 ─────────────────────────────────────────
+const GAMES = [
+  { href: 'play/laser.html', emoji: '🔴',
+    en: { name: 'Laser Pointer', desc: 'Wiggle the dot, let your cat pounce.' },
+    ko: { name: '레이저 포인터', desc: '점을 흔들다 고양이가 덮치게 해주세요.' } },
+  { href: 'play/worldcup.html', emoji: '🏆',
+    en: { name: 'Cutie World Cup', desc: 'Vote round by round for the cutest cat.' },
+    ko: { name: '귀요미 월드컵', desc: '한 판씩 더 귀여운 고양이를 골라 우승자를 뽑아요.' } },
+  { href: 'play/quiz.html', emoji: '✨',
+    en: { name: 'Which Cat Are You?', desc: 'Answer a few questions, meet your match.' },
+    ko: { name: '닮은 고양이 퀴즈', desc: '몇 가지 질문에 답하고 나와 닮은 고양이를 찾아요.' } },
+  { href: 'play/balance.html', emoji: '⚖️',
+    en: { name: 'Cat Balance', desc: 'Would you rather? Cat edition.' },
+    ko: { name: '냥 밸런스', desc: '고양이 밸런스 게임, 당신의 선택은?' } },
+];
+const GAME_UI = {
+  en: { title: 'pick a game', close: 'close' },
+  ko: { title: '게임을 골라주세요', close: '닫기' },
+};
+let gameMenuReady = false;
+function buildGameMenu() {
+  if (gameMenuReady) return;
+  const L = lang === 'ko' ? 'ko' : 'en';
+  $('gameTitle').textContent = GAME_UI[L].title;
+  $('gameClose').textContent = GAME_UI[L].close;
+  const list = $('gameList');
+  for (const g of GAMES) {
+    const a = document.createElement('a');
+    a.className = 'gamecard';
+    a.href = g.href;
+    a.innerHTML = `<span class="emoji">${g.emoji}</span>` +
+      `<span class="gtext"><span class="gname"></span><span class="gdesc"></span></span>`;
+    a.querySelector('.gname').textContent = g[L].name;
+    a.querySelector('.gdesc').textContent = g[L].desc;
+    list.appendChild(a);
+  }
+  $('gameClose').onclick = () => $('gameUI').classList.add('hidden');
+  $('gameUI').addEventListener('pointerdown', (e) => {
+    if (e.target === $('gameUI')) $('gameUI').classList.add('hidden');
+  });
+  gameMenuReady = true;
+}
+function openGameMenu() {
+  buildGameMenu();
+  $('gameUI').classList.remove('hidden');
+}
+
 function makeStage(breeds, initialIndex = 0) {
   if (stage) stage.destroy();
   try {
@@ -249,8 +325,8 @@ function makeStage(breeds, initialIndex = 0) {
 }
 
 // ── 입양 모드 ──────────────────────────────────────────────
-function enterAdoption() {
-  makeStage([0, 1, 2, 3]);
+function enterAdoption(initialIndex = 0) {
+  makeStage([0, 1, 2, 3], initialIndex);
   $('adoptUI').classList.remove('hidden');
   $('hubUI').classList.add('hidden');
   $('jellyBox').classList.add('hidden');
@@ -321,7 +397,7 @@ function enterHub(justAdopted = false) {
     updateHUD();
   };
 
-  $('playBtn').onclick = () => { location.href = 'play/laser.html'; };
+  $('playBtn').onclick = () => openGameMenu();
 
   $('shareBtn').onclick = async () => {
     const snap = stage.snapshot();
@@ -356,7 +432,13 @@ function enterHub(justAdopted = false) {
   };
 }
 
-if (state.cat) enterHub(); else enterAdoption();
+if (state.cat) {
+  enterHub();
+} else {
+  const adoptParam = new URLSearchParams(location.search).get('adopt');
+  const idx = adoptParam !== null ? parseInt(adoptParam, 10) : NaN;
+  enterAdoption(Number.isInteger(idx) && idx >= 0 && idx <= 3 ? idx : 0);
+}
 </script>
 </body>
 </html>

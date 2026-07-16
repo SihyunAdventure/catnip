@@ -303,7 +303,8 @@ void main(){ o = vC; }`);
     };
 
     for (let ci = 0; ci < this.breeds.length; ci++) {
-      const coat = COATS[this.breeds[ci]];
+      const b = this.breeds[ci];
+      const coat = typeof b === 'number' ? COATS[b] : b;
       const CX = W * 0.5 + ci * W;
       const muzX = CX, muzY = CY + R * 0.28, muzR = R * 0.36;
 

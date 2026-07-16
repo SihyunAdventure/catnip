@@ -197,6 +197,7 @@ const t2 = t;   // onFrame 파라미터 t(시간)와 번역 함수 t 이름 충�
 // ── 게임 루프 (stage.onFrame 훅) ───────────────────────────
 stage.onFrame = (t, octx, { center }) => {
   if (!playing) return;
+  stage.petMeter = 0;
 
   stage.lookOverride = { x: dot.x, y: dot.y };
 
@@ -206,10 +207,10 @@ stage.onFrame = (t, octx, { center }) => {
   const dc = Math.hypot(dot.x - center.x, dot.y - (center.y + center.R));
   if (!pounce && dc < center.R * 3.2 && speed > 2) exc = Math.min(1, exc + speed * 0.0011);
   exc *= 0.996;
-  if (exc > 0.65) stage.excite(exc * 1.5);
+  if (exc > 0.65) stage.excite(exc * 0.25);
 
   // 덮치기 발동
-  if (!pounce && exc >= 1 && dc < center.R * 3.2) {
+  if (!pounce && exc >= 0.97 && dc < center.R * 3.2) {
     const dx = Math.max(-center.R * 1.3, Math.min(center.R * 1.3, dot.x - center.x));
     const dy = Math.max(-center.R * 0.9, Math.min(center.R * 0.5, dot.y - (center.y + center.R * 1.2)));
     pounce = { t0: t, dx, dy, tx: dot.x, ty: dot.y, judged: false };

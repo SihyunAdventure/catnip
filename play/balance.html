@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>cat would-you-rather — catnip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+<meta name="description" content="10 impossible cat-servant dilemmas — choose fast, then see how other servants voted. 냥 밸런스 게임: 집사라면 피할 수 없는 딜레마 10문항, 당신의 집사 성향은?">
+<meta property="og:title" content="cat would-you-rather — catnip">
+<meta property="og:description" content="10 impossible cat-servant dilemmas. 냥 밸런스 게임 10문항으로 알아보는 집사 성향.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --paper:#e8e1ce;
+    --paper-hi:#f3eddc;
+    --ink:#33291d;
+    --ink-soft:#6f6350;
+    --rust:#a44a2a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{min-height:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);
+    background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  }
+  .wrap{max-width:600px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:0 20px 48px}
+
+  .hud-top{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 4px;font-family:var(--mono);font-size:13px;
+  }
+  .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .stat{background:var(--paper-hi);border:1px solid var(--ink);padding:5px 12px;font-weight:600}
+
+  section{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:12px 0 24px}
+  .hidden{display:none !important}
+
+  /* intro */
+  .hero{text-align:center;display:flex;flex-direction:column;gap:18px;align-items:center}
+  .hero .emoji{font-size:56px;line-height:1}
+  .hero h1{margin:0;font-family:var(--serif);font-weight:500;font-size:34px}
+  .hero p{margin:0;font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);line-height:1.8;max-width:340px}
+  .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn{
+    appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    padding:11px 20px;cursor:pointer;text-decoration:none;display:inline-block;
+  }
+  .btn.primary{background:var(--ink);color:var(--paper-hi)}
+
+  /* game */
+  .progress{font-family:var(--mono);font-size:12px;color:var(--ink-soft);text-align:center;letter-spacing:.08em}
+  .pbar{height:4px;background:rgba(51,41,29,.15);margin:10px 0 22px}
+  .pbar > i{display:block;height:100%;background:var(--rust);width:0;transition:width .4s}
+  .qtext{text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink-soft);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+
+  .opt{
+    display:block;width:100%;text-align:left;position:relative;overflow:hidden;
+    border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    font-family:var(--serif);font-size:22px;line-height:1.35;
+    padding:24px 22px;cursor:pointer;transition:transform .12s,box-shadow .12s;
+  }
+  .opt:not(:disabled):hover{transform:translateY(-2px);box-shadow:4px 4px 0 var(--ink)}
+  .opt:disabled{cursor:default}
+  .opt .fillbg{position:absolute;left:0;top:0;bottom:0;background:rgba(164,74,42,.14);width:0;transition:width .85s cubic-bezier(.2,.8,.2,1)}
+  .opt.chosen .fillbg{background:rgba(164,74,42,.28)}
+  .opt .content{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+  .opt .label{flex:1}
+  .opt .pct{font-family:var(--mono);font-weight:700;font-size:19px;opacity:0;transition:opacity .5s .2s;white-space:nowrap}
+  .opt.revealed .pct{opacity:1}
+  .opt .you{display:none;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--rust);margin-top:6px;position:relative}
+  .opt.chosen.revealed .you{display:block}
+
+  .vs{
+    text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.15em;
+    color:var(--ink-soft);margin:12px 0;text-transform:uppercase;
+  }
+  .reveal-note{text-align:center;font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);opacity:0;transition:opacity .5s;height:14px}
+  .reveal-note.show{opacity:1}
+
+  /* result */
+  .result{text-align:center;display:flex;flex-direction:column;gap:16px;align-items:center}
+  .result .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+  .result h2{margin:0;font-family:var(--serif);font-weight:500;font-size:32px}
+  .result .desc{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);line-height:1.85;max-width:380px}
+  .ratio{width:100%;max-width:380px}
+  .ratio .ratbar{height:22px;border:1px solid var(--ink);display:flex;font-family:var(--mono);font-size:11px;font-weight:700}
+  .ratio .ratbar .roman{background:var(--rust);color:var(--paper-hi);display:flex;align-items:center;justify-content:flex-start;padding-left:8px;transition:width .8s}
+  .ratio .ratbar .real{background:var(--paper-hi);color:var(--ink);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;flex:1}
+  .ratio .ratlabels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--ink-soft);margin-top:5px}
+  .picks{width:100%;max-width:380px;border:1px solid var(--ink);background:var(--paper-hi);padding:14px 16px;text-align:left}
+  .picks .pk-title{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
+  .picks .pk{font-family:var(--serif);font-size:16px;padding:4px 0;display:flex;gap:8px}
+  .picks .pk b{color:var(--rust);font-family:var(--mono);font-size:14px}
+  .earned{font-family:var(--mono);font-size:12px}
+  .earned b{color:var(--rust)}
+
+  #toast{
+    position:fixed;top:64px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper-hi);
+    font-family:var(--mono);font-size:12px;padding:9px 16px;
+    opacity:0;transition:opacity .25s;pointer-events:none;z-index:9;
+  }
+  #toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hud-top">
+    <a class="wordmark" href="../">catnip</a>
+    <span class="stat">🐾 <span id="jellyN">0</span></span>
+  </div>
+
+  <!-- intro -->
+  <section id="intro" class="hero">
+    <div class="emoji">⚖️</div>
+    <h1 id="introTitle"></h1>
+    <p id="introSub"></p>
+    <div class="row">
+      <button class="btn primary" id="startBtn"></button>
+      <a class="btn" href="../" id="introHome"></a>
+    </div>
+  </section>
+
+  <!-- game -->
+  <section id="game" class="hidden">
+    <div class="progress" id="progress"></div>
+    <div class="pbar"><i id="pfill"></i></div>
+    <div class="qtext" id="qtext"></div>
+    <button class="opt" id="optA">
+      <span class="fillbg" id="fillA"></span>
+      <span class="content"><span class="label" id="labelA"></span><span class="pct" id="pctA"></span></span>
+      <span class="you" id="youA"></span>
+    </button>
+    <div class="vs" id="vsLabel"></div>
+    <button class="opt" id="optB">
+      <span class="fillbg" id="fillB"></span>
+      <span class="content"><span class="label" id="labelB"></span><span class="pct" id="pctB"></span></span>
+      <span class="you" id="youB"></span>
+    </button>
+    <div class="reveal-note" id="revealNote"></div>
+  </section>
+
+  <!-- result -->
+  <section id="result" class="hidden">
+    <div class="result">
+      <div class="kicker" id="resKicker"></div>
+      <h2 id="resTitle"></h2>
+      <div class="desc" id="resDesc"></div>
+      <div class="ratio">
+        <div class="ratbar"><span class="roman" id="ratRoman"></span><span class="real" id="ratReal"></span></div>
+        <div class="ratlabels"><span id="ratLabelRoman"></span><span id="ratLabelReal"></span></div>
+      </div>
+      <div class="picks">
+        <div class="pk-title" id="picksTitle"></div>
+        <div id="picksList"></div>
+      </div>
+      <div class="earned" id="earnedLine"></div>
+      <div class="row">
+        <button class="btn primary" id="shareBtn"></button>
+        <button class="btn" id="againBtn"></button>
+        <a class="btn" href="../" id="resHome"></a>
+      </div>
+    </div>
+  </section>
+</div>
+<div id="toast"></div>
+
+<script type="module">
+import * as store from '../engine/save.js';
+import { lang } from '../engine/i18n.js';
+
+document.documentElement.lang = lang;
+const $ = (id) => document.getElementById(id);
+
+// ── 페이지 로컬 사전 (engine/i18n.js 는 수정 금지) ────────────────
+const L = {
+  en: {
+    introTitle: 'cat would-you-rather',
+    introSub: '10 impossible dilemmas every cat servant must face. pick fast — no take-backs. then see how the rest of us voted.',
+    start: 'start',
+    home: 'home',
+    qtext: 'you can only pick one',
+    vs: 'or',
+    revealNote: 'of cat servants agree with you',
+    you: '◀ you',
+    resKicker: 'your cat-servant type',
+    picksTitle: 'your signature picks',
+    share: 'share result',
+    again: 'again',
+    earned: 'completed — <b>+{n} 🐾</b> jelly',
+    typeRoman: 'The Dreamer',
+    typeReal: 'The Realist',
+    typeBalanced: 'The Fence-Sitter',
+    descRoman: 'you chase the romance of cat life — talking cats, nine-cat households, endless kneading. love first, litter box later. dreamer {r}% · realist {p}%.',
+    descReal: 'nail clippers and vet appointments come to mind first. you believe love is spelled r-e-s-p-o-n-s-i-b-i-l-i-t-y. realist {p}% · dreamer {r}%.',
+    descBalanced: 'a tightrope walk between romance and reality — treats in one hand, dental scaling booked in the other. dreamer {r}% · realist {p}%.',
+    labelRoman: 'dreamer',
+    labelReal: 'realist',
+  },
+  ko: {
+    introTitle: '냥 밸런스 게임',
+    introSub: '집사라면 피할 수 없는 딜레마 10문항. 고민은 짧게, 번복은 금지. 다른 집사들은 뭘 골랐는지도 알려드려요.',
+    start: '시작하기',
+    home: '집으로',
+    qtext: '둘 중 하나만 고를 수 있어요',
+    vs: '혹은',
+    revealNote: '의 집사가 당신과 같은 선택',
+    you: '◀ 내 선택',
+    resKicker: '당신의 집사 성향',
+    picksTitle: '당신의 대표 선택',
+    share: '결과 자랑하기',
+    again: '다시 하기',
+    earned: '완주 — 젤리 <b>+{n} 🐾</b> 획득',
+    typeRoman: '로망파 집사',
+    typeReal: '현실파 집사',
+    typeBalanced: '밸런스 집사',
+    descRoman: '당신은 고양이와의 낭만을 좇는 몽상가. 말하는 고양이도, 아홉 마리 대가족도 마다하지 않죠. 사랑이 먼저, 화장실 청소는 나중. 로망 {r}% · 현실 {p}%.',
+    descReal: '발톱깎이와 병원 예약부터 떠올리는 현실 집사. 사랑은 곧 책임이라 믿죠. 현실 {p}% · 로망 {r}%.',
+    descBalanced: '로망과 현실 사이의 절묘한 줄타기. 한 손엔 간식, 다른 손엔 스케일링 예약. 로망 {r}% · 현실 {p}%.',
+    labelRoman: '로망',
+    labelReal: '현실',
+  },
+};
+const tt = (k, vars = {}) => {
+  let s = (L[lang] && L[lang][k]) ?? L.en[k] ?? k;
+  for (const [kk, v] of Object.entries(vars)) s = s.replaceAll(`{${kk}}`, v);
+  return s;
+};
+
+// ── 10문항 (직접 작문) ─────────────────────────────────────────
+// seedA = A 선택지의 그럴싸한 시드 분포(%). 실제 집계는 P2 백엔드 예정.
+// lean: 각 선택지가 '로망'/'현실' 축 중 어디로 기우는지.
+const QUESTIONS = [
+  { seedA: 61,
+    a: { en: 'Your cat can talk like a human', ko: '우리 고양이가 사람 말을 한다', short_en: 'talking cat', short_ko: '말하는 고양이', lean: 'roman' },
+    b: { en: 'You can understand cat language', ko: '내가 고양이 말을 알아듣는다', short_en: 'cat whisperer', short_ko: '고양이 말 이해', lean: 'real' } },
+  { seedA: 44,
+    a: { en: 'Free treats for life', ko: '평생 간식값 무료', short_en: 'free treats', short_ko: '평생 간식 무료', lean: 'roman' },
+    b: { en: 'Free vet bills for life', ko: '평생 병원비 무료', short_en: 'free vet bills', short_ko: '평생 병원비 무료', lean: 'real' } },
+  { seedA: 68,
+    a: { en: 'Cat naps on your laptop', ko: '고양이가 노트북 위에서 잔다', short_en: 'laptop napper', short_ko: '노트북 위에서 잠', lean: 'roman' },
+    b: { en: 'Cat strolls across your keyboard', ko: '고양이가 키보드 위를 걷는다', short_en: 'keyboard walker', short_ko: '키보드 위를 걸음', lean: 'real' } },
+  { seedA: 39,
+    a: { en: '4 a.m. zoomies', ko: '새벽 4시 우다다', short_en: '4 a.m. zoomies', short_ko: '새벽 4시 우다다', lean: 'real' },
+    b: { en: '6 a.m. face-kneading', ko: '새벽 6시 얼굴 꾹꾹이', short_en: '6 a.m. kneading', short_ko: '새벽 6시 꾹꾹이', lean: 'roman' } },
+  { seedA: 55,
+    a: { en: 'A tsundere who loves only you', ko: '나만 사랑하는 츤데레', short_en: 'a tsundere', short_ko: '나만 사랑하는 츤데레', lean: 'roman' },
+    b: { en: 'A dog-cat sweet to everyone', ko: '누구에게나 다정한 개냥이', short_en: 'a friendly dog-cat', short_ko: '누구에게나 다정한 개냥이', lean: 'real' } },
+  { seedA: 34,
+    a: { en: 'A cat that never sheds', ko: '털이 절대 안 빠지는 고양이', short_en: 'a cat that never sheds', short_ko: '털 안 빠지는 고양이', lean: 'real' },
+    b: { en: 'A cat that stays kitten-sized forever', ko: '평생 아기 고양이 크기인 고양이', short_en: 'a forever kitten', short_ko: '평생 아깽이인 고양이', lean: 'roman' } },
+  { seedA: 72,
+    a: { en: 'Work from home together all day', ko: '하루 종일 함께 재택근무', short_en: 'work from home together', short_ko: '하루 종일 함께 재택', lean: 'roman' },
+    b: { en: 'A cat that greets you after work', ko: '퇴근하면 반겨주는 고양이', short_en: 'a cat that greets you', short_ko: '퇴근하면 반겨주는 고양이', lean: 'real' } },
+  { seedA: 43,
+    a: { en: 'Sleeps only on your lap', ko: '내 무릎에서만 잔다', short_en: 'sleeps on your lap', short_ko: '내 무릎에서만 잠', lean: 'roman' },
+    b: { en: 'Sleeps only in the priciest cat tower', ko: '제일 비싼 캣타워에서만 잔다', short_en: 'sleeps in a fancy tower', short_ko: '비싼 캣타워에서만 잠', lean: 'real' } },
+  { seedA: 64,
+    a: { en: 'Disobedient but unbearably cute', ko: '말 안 듣지만 세상 귀여운 고양이', short_en: 'a cute little rebel', short_ko: '말 안 듣는 귀염둥이', lean: 'roman' },
+    b: { en: 'Obedient but coolly aloof', ko: '말 잘 듣지만 시크한 고양이', short_en: 'an obedient cool cat', short_ko: '말 잘 듣는 시크냥', lean: 'real' } },
+  { seedA: 29,
+    a: { en: 'Live with nine cats', ko: '고양이 아홉 마리와 산다', short_en: 'nine cats', short_ko: '고양이 아홉 마리', lean: 'roman' },
+    b: { en: 'One cat, cared for perfectly', ko: '한 마리를 완벽하게 케어한다', short_en: 'one perfectly-cared cat', short_ko: '완벽하게 케어하는 한 마리', lean: 'real' } },
+];
+
+// ── 로컬 선택 누적 (engine/save.js 와 별도 키) ────────────────────
+// 서버가 없으므로 표시 분포 = 시드값 + 내 로컬 누적 선택 ±1~2%.
+const BKEY = 'catnip.balance.v1';
+function loadDist() { try { return JSON.parse(localStorage.getItem(BKEY)) || {}; } catch { return {}; } }
+function saveDist(d) { try { localStorage.setItem(BKEY, JSON.stringify(d)); } catch { /* private mode 등 */ } }
+
+const state = store.load();
+$('jellyN').textContent = state.jelly;
+
+let idx = 0;
+let answers = [];      // 'a' | 'b'
+let locked = false;
+
+function toast(msg, ms = 1400) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// 정적 텍스트 주입
+$('introTitle').textContent = tt('introTitle');
+$('introSub').textContent = tt('introSub');
+$('startBtn').textContent = tt('start');
+$('introHome').textContent = tt('home');
+$('vsLabel').textContent = tt('vs');
+$('resKicker').textContent = tt('resKicker');
+$('picksTitle').textContent = tt('picksTitle');
+$('shareBtn').textContent = tt('share');
+$('againBtn').textContent = tt('again');
+$('resHome').textContent = tt('home');
+
+function show(which) {
+  for (const s of ['intro', 'game', 'result']) $(s).classList.toggle('hidden', s !== which);
+}
+
+function startGame() {
+  idx = 0; answers = []; locked = false;
+  show('game');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[idx];
+  locked = false;
+  $('progress').textContent = `${idx + 1} / ${QUESTIONS.length}`;
+  $('pfill').style.width = `${(idx / QUESTIONS.length) * 100}%`;
+  $('qtext').textContent = tt('qtext');
+  $('labelA').textContent = q.a[lang] ?? q.a.en;
+  $('labelB').textContent = q.b[lang] ?? q.b.en;
+  for (const side of ['A', 'B']) {
+    const o = $('opt' + side);
+    o.classList.remove('chosen', 'revealed');
+    o.disabled = false;
+    $('fill' + side).style.width = '0%';
+    $('pct' + side).textContent = '';
+    $('you' + side).textContent = tt('you');
+  }
+  $('revealNote').classList.remove('show');
+  $('revealNote').textContent = '';
+}
+
+function pick(side) {
+  if (locked) return;
+  locked = true;
+  answers[idx] = side;
+
+  // 로컬 누적 갱신
+  const dist = loadDist();
+  const rec = dist[idx] || { a: 0, b: 0 };
+  rec[side]++;
+  dist[idx] = rec;
+  saveDist(dist);
+
+  // 표시 분포: 시드 + 내 누적 편향 (clamp ±2%)
+  const q = QUESTIONS[idx];
+  const nudge = Math.max(-2, Math.min(2, rec.a - rec.b));
+  const aPct = Math.max(5, Math.min(95, q.seedA + nudge));
+  const bPct = 100 - aPct;
+
+  $('optA').disabled = true;
+  $('optB').disabled = true;
+  $('optA').classList.add('revealed');
+  $('optB').classList.add('revealed');
+  $('opt' + side.toUpperCase()).classList.add('chosen');
+  // requestAnimationFrame 으로 트랜지션 트리거
+  requestAnimationFrame(() => {
+    $('fillA').style.width = aPct + '%';
+    $('fillB').style.width = bPct + '%';
+  });
+  $('pctA').textContent = aPct + '%';
+  $('pctB').textContent = bPct + '%';
+  const myPct = side === 'a' ? aPct : bPct;
+  $('revealNote').textContent = `${myPct}% ${tt('revealNote')}`;
+  $('revealNote').classList.add('show');
+
+  setTimeout(() => {
+    idx++;
+    if (idx < QUESTIONS.length) renderQuestion();
+    else showResult();
+  }, 2000);
+}
+
+$('optA').onclick = () => pick('a');
+$('optB').onclick = () => pick('b');
+$('startBtn').onclick = startGame;
+$('againBtn').onclick = startGame;
+
+// ── 성향 요약 로직 ───────────────────────────────────────────
+function computeType() {
+  let roman = 0;
+  answers.forEach((side, i) => {
+    const opt = QUESTIONS[i][side];
+    if (opt.lean === 'roman') roman++;
+  });
+  const real = QUESTIONS.length - roman;
+  const romanPct = Math.round((roman / QUESTIONS.length) * 100);
+  const realPct = 100 - romanPct;
+  let type;
+  if (roman >= 7) type = 'roman';
+  else if (real >= 7) type = 'real';
+  else type = 'balanced';
+  return { roman, real, romanPct, realPct, type };
+}
+
+function representativePicks(summary) {
+  // 지배 성향과 lean 이 일치하는 선택 우선, 부족하면 나머지로 채움
+  const dominant = summary.type === 'real' ? 'real' : 'roman';
+  const match = [], rest = [];
+  answers.forEach((side, i) => {
+    const opt = QUESTIONS[i][side];
+    (opt.lean === dominant ? match : rest).push(opt);
+  });
+  return [...match, ...rest].slice(0, 3);
+}
+
+let lastSummary = null, lastPicks = null;
+
+function showResult() {
+  $('pfill').style.width = '100%';
+  const summary = computeType();
+  lastSummary = summary;
+
+  const key = summary.type === 'roman' ? 'typeRoman' : summary.type === 'real' ? 'typeReal' : 'typeBalanced';
+  const descKey = summary.type === 'roman' ? 'descRoman' : summary.type === 'real' ? 'descReal' : 'descBalanced';
+  $('resTitle').textContent = tt(key);
+  $('resDesc').textContent = tt(descKey, { r: summary.romanPct, p: summary.realPct });
+
+  $('ratRoman').style.width = summary.romanPct + '%';
+  $('ratRoman').textContent = summary.romanPct >= 15 ? summary.romanPct + '%' : '';
+  $('ratReal').textContent = summary.realPct >= 15 ? summary.realPct + '%' : '';
+  $('ratLabelRoman').textContent = `${tt('labelRoman')} ${summary.romanPct}%`;
+  $('ratLabelReal').textContent = `${summary.realPct}% ${tt('labelReal')}`;
+
+  const picks = representativePicks(summary);
+  lastPicks = picks;
+  const list = $('picksList');
+  list.innerHTML = '';
+  for (const opt of picks) {
+    const div = document.createElement('div');
+    div.className = 'pk';
+    const b = document.createElement('b'); b.textContent = '›';
+    const span = document.createElement('span'); span.textContent = opt[lang] ?? opt.en;
+    div.append(b, span);
+    list.appendChild(div);
+  }
+
+  // 보상: 완주 시 젤리 +5, balanceDone 카운트
+  const EARN = 5;
+  state.jelly += EARN;
+  state.stats.balanceDone = (state.stats.balanceDone || 0) + 1;
+  store.save(state);
+  $('jellyN').textContent = state.jelly;
+  $('earnedLine').innerHTML = tt('earned', { n: EARN });
+
+  show('result');
+}
+
+// ── 공유 카드 합성 (CatStage 미사용, 텍스트 카드) ────────────────
+function shortOf(opt) { return opt[`short_${lang}`] ?? opt.short_en; }
+
+$('shareBtn').onclick = async () => {
+  if (!lastSummary) return;
+  const W = 1000, H = 1250;
+  const card = document.createElement('canvas');
+  card.width = W; card.height = H;
+  const x = card.getContext('2d');
+
+  // 종이 배경 + 결 노이즈
+  x.fillStyle = '#e8e1ce'; x.fillRect(0, 0, W, H);
+  x.fillStyle = 'rgba(51,41,29,0.03)';
+  for (let i = 0; i < 2600; i++) {
+    x.fillRect(Math.random() * W, Math.random() * H, 1.4, 1.4);
+  }
+  x.strokeStyle = '#33291d'; x.lineWidth = 3; x.strokeRect(48, 48, W - 96, H - 96);
+
+  x.textAlign = 'center';
+  x.fillStyle = '#a44a2a';
+  x.font = '600 30px Menlo, monospace';
+  x.fillText('⚖️  cat would-you-rather', W / 2, 150);
+
+  x.fillStyle = '#6f6350';
+  x.font = '24px Menlo, monospace';
+  x.fillText(tt('resKicker').toUpperCase(), W / 2, 232);
+
+  const typeKey = lastSummary.type === 'roman' ? 'typeRoman' : lastSummary.type === 'real' ? 'typeReal' : 'typeBalanced';
+  x.fillStyle = '#33291d';
+  x.font = '600 74px Georgia, serif';
+  x.fillText(tt(typeKey), W / 2, 320);
+
+  x.fillStyle = '#a44a2a';
+  x.font = '600 30px Menlo, monospace';
+  x.fillText(`${tt('labelRoman')} ${lastSummary.romanPct}%  ·  ${tt('labelReal')} ${lastSummary.realPct}%`, W / 2, 388);
+
+  // 비율 바
+  const bx = 130, by = 430, bw = W - 260, bh = 34;
+  const rw = Math.round(bw * lastSummary.romanPct / 100);
+  x.fillStyle = '#a44a2a'; x.fillRect(bx, by, rw, bh);
+  x.fillStyle = '#e2d9c2'; x.fillRect(bx + rw, by, bw - rw, bh);
+  x.strokeStyle = '#33291d'; x.lineWidth = 2; x.strokeRect(bx, by, bw, bh);
+
+  // 대표 선택 3개
+  x.fillStyle = '#6f6350';
+  x.font = '22px Menlo, monospace';
+  x.fillText(tt('picksTitle').toUpperCase(), W / 2, 560);
+
+  x.fillStyle = '#33291d';
+  x.font = '40px Georgia, serif';
+  const picks = lastPicks || [];
+  picks.forEach((opt, i) => {
+    x.fillText('“' + shortOf(opt) + '”', W / 2, 650 + i * 92);
+  });
+
+  x.fillStyle = '#a44a2a';
+  x.font = '600 34px Menlo, monospace';
+  x.fillText('catnip.fun', W / 2, H - 110);
+
+  card.toBlob(async (blob) => {
+    const file = new File([blob], 'my-cat-would-you-rather.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'catnip' }); return; } catch { /* 취소 */ }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'my-cat-would-you-rather.png';
+    a.click();
+  }, 'image/png');
+};
+
+show('intro');
+</script>
+</body>
+</html>

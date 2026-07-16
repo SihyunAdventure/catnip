@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>cutest cat world cup — catnip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
+<meta name="description" content="Run a 16-cat cutest cat world cup — pick the cuter cat each round until a champion is crowned. catnip 귀요미 월드컵: 16강 토너먼트로 가장 귀여운 고양이를 뽑아요.">
+<meta property="og:title" content="cutest cat world cup · 귀요미 월드컵 — catnip">
+<meta property="og:description" content="16 procedurally-generated cats, one champion. 16마리 중 최고의 귀요미를 골라주세요.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --paper:#e8e1ce;
+    --paper-hi:#f3eddc;
+    --ink:#33291d;
+    --ink-soft:#6f6350;
+    --rust:#a44a2a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);
+    background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  }
+  .screen{position:absolute;inset:0;overflow:hidden}
+
+  .hud-top{
+    position:absolute;top:0;left:0;right:0;z-index:3;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 28px;font-family:var(--mono);font-size:13px;
+  }
+  .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .stat{background:var(--paper-hi);border:1px solid var(--ink);padding:5px 12px;font-weight:600}
+
+  /* ── 매치 화면 ── */
+  .match{position:absolute;inset:0;display:flex}
+  .side{position:relative;flex:1;cursor:pointer;transition:background .18s}
+  .side canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .side canvas:last-child{touch-action:none}
+  .side:hover{background:rgba(243,237,220,.35)}
+  .side .name{
+    position:absolute;left:0;right:0;bottom:34px;text-align:center;
+    font-family:var(--mono);font-size:15px;font-weight:600;color:var(--ink);
+    pointer-events:none;letter-spacing:.02em;
+  }
+  .vs{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;
+    font-family:var(--mono);font-size:12px;background:var(--ink);color:var(--paper-hi);
+    width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+    pointer-events:none;box-shadow:0 2px 10px rgba(51,41,29,.25);
+  }
+  .pick-hint{
+    position:absolute;top:62px;left:50%;transform:translateX(-50%);z-index:2;
+    font-family:var(--mono);font-size:12px;color:var(--ink-soft);pointer-events:none;
+  }
+
+  /* ── 우승 화면 ── */
+  .win-stage{position:absolute;inset:0}
+  .win-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .win-card{
+    position:absolute;left:50%;bottom:40px;transform:translateX(-50%);z-index:3;
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:22px 34px;display:flex;flex-direction:column;gap:12px;align-items:center;
+    font-family:var(--mono);text-align:center;max-width:88vw;
+  }
+  .win-card .champ{font-size:11px;letter-spacing:.18em;color:var(--rust);text-transform:uppercase}
+  .win-card h2{margin:0;font-family:var(--serif);font-weight:500;font-size:30px}
+  .win-card .reward{font-size:13px;color:var(--ink-soft)}
+
+  /* ── 시작/공용 패널 ── */
+  .panel{
+    position:absolute;inset:0;display:grid;place-items:center;
+    background:rgba(232,225,206,.75);backdrop-filter:blur(3px);
+  }
+  .panel .card{
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:34px 42px;display:flex;flex-direction:column;gap:16px;align-items:center;
+    font-family:var(--mono);text-align:center;
+  }
+  .panel h2{margin:0;font-family:var(--serif);font-weight:500;font-size:26px}
+  .panel .hint{font-size:11.5px;color:var(--ink-soft);max-width:280px;line-height:1.7}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .btn{
+    appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    padding:10px 18px;cursor:pointer;text-decoration:none;
+  }
+  .btn.primary{background:var(--ink);color:var(--paper-hi)}
+  #toast{
+    position:absolute;top:72px;left:50%;transform:translateX(-50%);z-index:4;
+    background:var(--ink);color:var(--paper-hi);
+    font-family:var(--mono);font-size:12px;padding:9px 16px;
+    opacity:0;transition:opacity .25s;pointer-events:none;
+  }
+  #toast.show{opacity:1}
+  .fallback{
+    position:absolute;inset:0;display:none;place-items:center;z-index:9;
+    font-family:var(--mono);font-size:13px;color:var(--rust);background:var(--paper);
+  }
+  .hidden{display:none !important}
+
+  @media (orientation:portrait){
+    .match{flex-direction:column}
+    .side .name{bottom:14px}
+  }
+</style>
+</head>
+<body>
+<!-- 시작 -->
+<section class="screen" id="startScreen">
+  <div class="panel">
+    <div class="card">
+      <h2 id="sTitle"></h2>
+      <div class="hint" id="sHint"></div>
+      <button class="btn primary" id="startBtn"></button>
+      <a class="btn" href="../" id="sHome"></a>
+    </div>
+  </div>
+</section>
+
+<!-- 매치 -->
+<section class="screen hidden" id="matchScreen">
+  <div class="hud-top">
+    <a class="wordmark" href="../">catnip</a>
+    <span class="stat" id="roundLabel"></span>
+  </div>
+  <div class="pick-hint" id="pickHint"></div>
+  <div class="match">
+    <div class="side" id="leftSide">
+      <canvas id="ltl"></canvas><canvas id="lgl"></canvas><canvas id="lov"></canvas>
+      <div class="name" id="leftName"></div>
+    </div>
+    <div class="vs" id="vsBadge">vs</div>
+    <div class="side" id="rightSide">
+      <canvas id="rtl"></canvas><canvas id="rgl"></canvas><canvas id="rov"></canvas>
+      <div class="name" id="rightName"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 우승 -->
+<section class="screen hidden" id="winScreen">
+  <div class="hud-top">
+    <a class="wordmark" href="../">catnip</a>
+    <span class="stat">🏆</span>
+  </div>
+  <div class="win-stage">
+    <canvas id="wtl"></canvas><canvas id="wgl"></canvas><canvas id="wov"></canvas>
+  </div>
+  <div class="win-card">
+    <div class="champ" id="champLabel"></div>
+    <h2 id="winName"></h2>
+    <div class="reward" id="rewardLabel"></div>
+    <div class="row">
+      <button class="btn primary" id="wcShare"></button>
+      <button class="btn" id="wcAgain"></button>
+      <a class="btn" href="../" id="wcHome"></a>
+    </div>
+  </div>
+</section>
+
+<div class="fallback" id="fallback">WebGL2 required.</div>
+<div id="toast"></div>
+
+<script type="module">
+import { CatStage, COATS } from '../engine/cat-stage.js';
+import * as store from '../engine/save.js';
+import { lang } from '../engine/i18n.js';
+
+document.documentElement.lang = lang;
+const $ = (id) => document.getElementById(id);
+
+// ── 로컬 i18n ─────────────────────────────────────────────
+const L = {
+  en: {
+    title: 'cutest cat world cup',
+    hint: '16 cats, one champion. tap the cuter cat each round — no adoption needed.',
+    start: 'start',
+    home: 'home',
+    pick: 'tap the cuter cat',
+    roundOf16: 'round of 16', quarter: 'quarterfinal', semi: 'semifinal', final: 'final',
+    champion: 'champion',
+    reward: '+10 🐾 earned',
+    share: 'share', again: 'play again',
+    saved: 'image saved — share it anywhere!',
+  },
+  ko: {
+    title: '귀요미 월드컵',
+    hint: '16마리 중 최고의 귀요미 한 마리. 매 라운드 더 귀여운 쪽을 탭하세요 — 입양 안 해도 돼요.',
+    start: '시작',
+    home: '집으로',
+    pick: '더 귀여운 쪽을 탭',
+    roundOf16: '16강', quarter: '8강', semi: '4강', final: '결승',
+    champion: '우승',
+    reward: '+10 🐾 획득',
+    share: '자랑하기', again: '다시 하기',
+    saved: '이미지가 저장됐어요 — 어디든 자랑하세요!',
+  },
+};
+const T = (k) => (L[lang] && L[lang][k]) ?? L.en[k] ?? k;
+
+// 정적 텍스트 적용
+$('sTitle').textContent = T('title');
+$('sHint').textContent = T('hint');
+$('startBtn').textContent = T('start');
+$('sHome').textContent = T('home');
+$('pickHint').textContent = T('pick');
+$('champLabel').textContent = T('champion');
+$('rewardLabel').textContent = T('reward');
+$('wcShare').textContent = T('share');
+$('wcAgain').textContent = T('again');
+$('wcHome').textContent = T('home');
+
+function toast(msg, ms = 1400) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// ── 시드 RNG + 색 유틸 ────────────────────────────────────
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const clamp255 = (v) => { v = Math.round(v); return v < 0 ? 0 : v > 255 ? 255 : v; };
+function hexTint(hex, bright, warm, cool) {
+  if (!hex) return hex;
+  const n = parseInt(hex.slice(1), 16);
+  const r = clamp255(((n >> 16) & 255) * bright * warm);
+  const g = clamp255(((n >> 8) & 255) * bright);
+  const b = clamp255((n & 255) * bright * cool);
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+// 후보 이름 풀 (한/영 페어)
+const NAMES = [
+  { ko: '망고', en: 'Mango' }, { ko: '모카', en: 'Mocha' }, { ko: '두부', en: 'Tofu' },
+  { ko: '콩이', en: 'Bean' }, { ko: '보리', en: 'Barley' }, { ko: '치즈볼', en: 'Cheeseball' },
+  { ko: '구름', en: 'Cloud' }, { ko: '까미', en: 'Kkami' }, { ko: '호두', en: 'Walnut' },
+  { ko: '앙꼬', en: 'Mochi' }, { ko: '단추', en: 'Button' }, { ko: '몽이', en: 'Mong' },
+  { ko: '초코', en: 'Choco' }, { ko: '별이', en: 'Star' }, { ko: '나무', en: 'Woody' },
+  { ko: '가을', en: 'Autumn' }, { ko: '감자', en: 'Potato' }, { ko: '젤리', en: 'Jelly' },
+  { ko: '루비', en: 'Ruby' }, { ko: '보노', en: 'Bono' },
+];
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ── 절차 생성 코트 ────────────────────────────────────────
+function makeVariantCoat(baseIdx, rng) {
+  const base = COATS[baseIdx];
+  const bright = 0.75 + rng() * 0.40;           // 전체 명도
+  const warm = 1 + (rng() * 0.2 - 0.1);         // r 채널 ±10%
+  const cool = 1 + (rng() * 0.2 - 0.1);         // b 채널 ±10%
+  const irisPool = ['#c98f3a', '#7fae5a', '#5a86c9', '#b5622e']; // 앰버·그린·블루·카퍼
+  const iris = irisPool[Math.floor(rng() * irisPool.length)];
+  const noseBright = 0.9 + rng() * 0.2;
+
+  const ft = (c) => [clamp01(c[0] * bright * warm), clamp01(c[1] * bright), clamp01(c[2] * bright * cool)];
+  const ht = (hex) => hexTint(hex, bright, warm, cool);
+
+  return {
+    fan: ft(base.fan),
+    muzzleFan: ft(base.muzzleFan),
+    chestFan: ft(base.chestFan),
+    iris,
+    nose: hexTint(base.nose, noseBright, warm, cool),
+    blush: base.blush,
+    earBlush: base.earBlush,
+    tail: {
+      base: ht(base.tail.base),
+      ring: ht(base.tail.ring),
+      tip: base.tail.tip ? ht(base.tail.tip) : null,
+    },
+    color(lx, ly, z) {
+      const [A, B] = base.color(lx, ly, z);
+      return [ft(A), ft(B)];
+    },
+  };
+}
+
+function makeCandidates() {
+  const names = shuffle(NAMES.slice()).slice(0, 16);
+  const list = [];
+  for (let i = 0; i < 16; i++) {
+    const seed = (Math.random() * 1e9) | 0;
+    const rng = mulberry32(seed);
+    const baseIdx = Math.floor(rng() * 4);
+    list.push({ coat: makeVariantCoat(baseIdx, rng), name: names[i] });
+  }
+  return list;
+}
+
+// ── 토너먼트 상태 ─────────────────────────────────────────
+let round = [];       // 현재 라운드 후보들
+let nextRound = [];    // 승자 모음
+let matchIdx = 0;
+let leftStage = null, rightStage = null, winnerStage = null;
+let picking = false;
+
+function show(screen) {
+  for (const id of ['startScreen', 'matchScreen', 'winScreen'])
+    $(id).classList.toggle('hidden', id !== screen);
+}
+
+function roundKey(size) {
+  return size >= 16 ? 'roundOf16' : size >= 8 ? 'quarter' : size >= 4 ? 'semi' : 'final';
+}
+
+function newStage(ids, coat) {
+  return new CatStage({ tl: $(ids[0]), gl: $(ids[1]), ov: $(ids[2]), breeds: [coat] });
+}
+
+function destroyMatchStages() {
+  if (leftStage) { leftStage.destroy(); leftStage = null; }
+  if (rightStage) { rightStage.destroy(); rightStage = null; }
+}
+
+function currentPair() {
+  return [round[matchIdx * 2], round[matchIdx * 2 + 1]];
+}
+
+function showMatch() {
+  show('matchScreen');
+  const [a, b] = currentPair();
+  $('leftName').textContent = a.name[lang];
+  $('rightName').textContent = b.name[lang];
+  $('roundLabel').textContent = `${T(roundKey(round.length))} · ${matchIdx + 1}/${round.length / 2}`;
+  // 화면이 보이는 상태(clientWidth>0)에서 빌드
+  destroyMatchStages();
+  leftStage = newStage(['ltl', 'lgl', 'lov'], a.coat);
+  rightStage = newStage(['rtl', 'rgl', 'rov'], b.coat);
+}
+
+function pick(sideKey) {
+  if (picking) return;
+  picking = true;
+  const [a, b] = currentPair();
+  const winner = sideKey === 'left' ? a : b;
+  const stage = sideKey === 'left' ? leftStage : rightStage;
+  stage.react('happy');
+  setTimeout(() => {
+    nextRound.push(winner);
+    matchIdx++;
+    if (matchIdx * 2 >= round.length) {
+      // 라운드 종료
+      if (nextRound.length === 1) { finish(nextRound[0]); picking = false; return; }
+      round = nextRound;
+      nextRound = [];
+      matchIdx = 0;
+    }
+    picking = false;
+    showMatch();
+  }, 320);
+}
+
+function finish(champ) {
+  destroyMatchStages();
+  show('winScreen');
+  $('winName').textContent = champ.name[lang];
+  winnerStage = newStage(['wtl', 'wgl', 'wov'], champ.coat);
+  setTimeout(() => winnerStage && winnerStage.react('happy'), 400);
+
+  // 보상 저장 (입양 여부 무관)
+  const state = store.load();
+  state.jelly += 10;
+  state.stats.worldcupRuns = (state.stats.worldcupRuns || 0) + 1;
+  store.save(state);
+}
+
+function startTournament() {
+  round = makeCandidates();
+  nextRound = [];
+  matchIdx = 0;
+  showMatch();
+}
+
+// ── 이벤트 ────────────────────────────────────────────────
+$('startBtn').onclick = startTournament;
+$('leftSide').addEventListener('click', () => pick('left'));
+$('rightSide').addEventListener('click', () => pick('right'));
+
+$('wcAgain').onclick = () => {
+  if (winnerStage) { winnerStage.destroy(); winnerStage = null; }
+  startTournament();
+};
+
+$('wcShare').onclick = async () => {
+  if (!winnerStage) return;
+  const snap = winnerStage.snapshot();
+  const name = $('winName').textContent;
+  const card = document.createElement('canvas');
+  card.width = 1000; card.height = 1250;
+  const x = card.getContext('2d');
+  x.fillStyle = '#e8e1ce'; x.fillRect(0, 0, 1000, 1250);
+  const srcW = Math.min(snap.width, snap.height * 0.8);
+  const sx0 = (snap.width - srcW) / 2;
+  const sy0 = Math.max(0, (snap.height - srcW * 1.05) / 2 - snap.height * 0.05);
+  x.drawImage(snap, sx0, sy0, srcW, srcW * 1.05, 60, 60, 880, 924);
+  x.strokeStyle = '#33291d'; x.lineWidth = 3; x.strokeRect(60, 60, 880, 924);
+  x.fillStyle = '#33291d';
+  x.font = '600 64px Georgia, serif';
+  x.textAlign = 'center';
+  x.fillText(`🏆 ${name}`, 500, 1090);
+  x.font = '28px Menlo, monospace';
+  x.fillStyle = '#a44a2a';
+  x.fillText('catnip.fun', 500, 1160);
+  card.toBlob(async (blob) => {
+    const file = new File([blob], 'catnip-worldcup.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'catnip' }); return; } catch { /* 취소 */ }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'catnip-worldcup.png';
+    a.click();
+    toast(T('saved'));
+  }, 'image/png');
+};
+
+// WebGL2 지원 확인
+try {
+  const test = document.createElement('canvas').getContext('webgl2');
+  if (!test) throw new Error('no webgl2');
+} catch {
+  $('fallback').style.display = 'grid';
+}
+</script>
+</body>
+</html>

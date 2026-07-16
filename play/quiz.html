@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>which cat are you? — catnip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+<meta name="description" content="Answer 8 questions and meet the cat that matches your personality. 8개의 질문에 답하고 나와 닮은 고양이를 찾아보세요 — catnip 성격 퀴즈.">
+<meta property="og:title" content="which cat are you? — catnip">
+<meta property="og:description" content="Answer 8 questions and meet your cat match. 나와 닮은 고양이는 어떤 고양이일까요?">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{
+    --paper:#e8e1ce;
+    --paper-hi:#f3eddc;
+    --ink:#33291d;
+    --ink-soft:#6f6350;
+    --rust:#a44a2a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);
+    background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  }
+  .stage{position:relative;height:100vh;min-height:520px;overflow:hidden}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .overlay{position:absolute;inset:0;pointer-events:none}
+  .overlay .ui{pointer-events:auto}
+
+  .hud-top{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 28px;font-family:var(--mono);font-size:13px;
+  }
+  .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .stat{background:var(--paper-hi);border:1px solid var(--ink);padding:5px 12px;font-weight:600}
+
+  .panel{
+    position:absolute;inset:0;display:grid;place-items:center;
+    background:rgba(232,225,206,.75);backdrop-filter:blur(3px);
+  }
+  .panel .card{
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:30px 34px;display:flex;flex-direction:column;gap:16px;align-items:center;
+    font-family:var(--mono);text-align:center;
+  }
+  .panel h2{margin:0;font-family:var(--serif);font-weight:500;font-size:26px}
+  .panel .hint{font-size:11.5px;color:var(--ink-soft);max-width:280px;line-height:1.7}
+
+  .btn{
+    appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    padding:10px 18px;cursor:pointer;text-decoration:none;
+  }
+  .btn.primary{background:var(--ink);color:var(--paper-hi)}
+  .btn:focus-visible{outline:2px solid var(--rust);outline-offset:-2px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+  /* ── 문항 ── */
+  .quiz-card{
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:22px 24px;width:calc(100% - 48px);max-width:440px;
+    display:flex;flex-direction:column;gap:12px;font-family:var(--mono);
+  }
+  .progress{width:100%;height:5px;background:rgba(51,41,29,.15)}
+  .progress .fill{height:100%;background:var(--rust);width:0;transition:width .32s}
+  .qnum{font-size:11px;color:var(--ink-soft);letter-spacing:.12em}
+  .q{font-family:var(--serif);font-size:22px;line-height:1.35;margin:2px 0 4px}
+  .opts{display:flex;flex-direction:column;gap:8px}
+  .opt{
+    appearance:none;border:1px solid var(--ink);background:var(--paper);color:var(--ink);
+    font-family:var(--mono);font-size:13px;line-height:1.45;text-align:left;
+    padding:12px 14px;cursor:pointer;transition:background .12s,color .12s;
+  }
+  .opt:hover,.opt:focus-visible{background:var(--ink);color:var(--paper-hi);outline:none}
+  .backrow{display:flex;justify-content:flex-start;margin-top:2px}
+  .backrow .btn:disabled{opacity:.3;cursor:default}
+
+  /* ── 결과 ── */
+  .result-head{
+    position:absolute;top:11%;left:0;right:0;text-align:center;padding:0 20px;
+  }
+  .result-head .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--ink-soft)}
+  .result-head h1{font-family:var(--serif);font-weight:500;font-size:clamp(26px,5.5vw,40px);margin:6px 0 0}
+  .result-card{
+    position:absolute;left:50%;bottom:26px;transform:translateX(-50%);
+    width:calc(100% - 44px);max-width:452px;
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:20px 22px;display:flex;flex-direction:column;gap:12px;
+    font-family:var(--mono);
+  }
+  .result-card .desc{font-family:var(--serif);font-size:15px;line-height:1.62}
+  .result-card .compat{font-size:11.5px;color:var(--rust);line-height:1.55}
+
+  #toast{
+    position:absolute;top:72px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper-hi);
+    font-family:var(--mono);font-size:12px;padding:9px 16px;
+    opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+  }
+  #toast.show{opacity:1}
+  .fallback{
+    position:absolute;inset:0;display:none;place-items:center;
+    font-family:var(--mono);font-size:13px;color:var(--rust);text-align:center;padding:0 20px;
+  }
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<section class="stage" aria-label="which cat are you">
+  <canvas id="tl"></canvas>
+  <canvas id="gl"></canvas>
+  <canvas id="ov"></canvas>
+  <div class="fallback" id="fallback">WebGL2 required.</div>
+  <div class="overlay">
+    <div class="hud-top">
+      <a class="wordmark" href="../">catnip</a>
+      <div><span class="stat">🐾 <span id="jellyN">0</span></span></div>
+    </div>
+
+    <!-- 인트로 -->
+    <div class="panel ui" id="introPanel">
+      <div class="card">
+        <h2 id="introTitle"></h2>
+        <div class="hint" id="introSub"></div>
+        <button class="btn primary" id="startBtn"></button>
+        <a class="btn" href="../" id="introHome"></a>
+      </div>
+    </div>
+
+    <!-- 문항 -->
+    <div class="panel ui hidden" id="quizPanel">
+      <div class="quiz-card">
+        <div class="progress"><div class="fill" id="progFill"></div></div>
+        <div class="qnum" id="qNum"></div>
+        <div class="q" id="qText"></div>
+        <div class="opts" id="qOpts"></div>
+        <div class="backrow"><button class="btn" id="backBtn"></button></div>
+      </div>
+    </div>
+
+    <!-- 결과 -->
+    <div class="ui hidden" id="resultPanel">
+      <div class="result-head">
+        <div class="kicker" id="resKicker"></div>
+        <h1 id="resTitle"></h1>
+      </div>
+      <div class="result-card">
+        <div class="desc" id="resDesc"></div>
+        <div class="compat" id="resCompat"></div>
+        <div class="row">
+          <button class="btn primary" id="shareBtn"></button>
+          <a class="btn" id="adoptBtn"></a>
+          <button class="btn" id="retryBtn"></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+  </div>
+</section>
+
+<script type="module">
+import { CatStage } from '../engine/cat-stage.js';
+import * as store from '../engine/save.js';
+import { t, lang } from '../engine/i18n.js';
+
+document.documentElement.lang = lang;
+const $ = (id) => document.getElementById(id);
+const state = store.load();
+
+// ── 페이지 로컬 사전 ────────────────────────────────────────
+const L = {
+  en: {
+    introTitle: 'which cat are you?',
+    introSub: '8 questions, and one very honest cat waiting at the end.',
+    start: 'start quiz',
+    home: 'home',
+    back: '‹ back',
+    share: 'share card',
+    adopt: 'adopt this cat →',
+    retry: 'try again',
+    kicker: 'your cat match',
+    reward: 'quiz complete! +5 🐾',
+    saved: 'card saved — share it anywhere!',
+  },
+  ko: {
+    introTitle: '당신은 어떤 고양이?',
+    introSub: '8개의 질문, 그리고 끝에서 기다리는 아주 솔직한 고양이 한 마리.',
+    start: '퀴즈 시작',
+    home: '집으로',
+    back: '‹ 이전',
+    share: '공유 카드',
+    adopt: '이 고양이 입양하기 →',
+    retry: '다시 하기',
+    kicker: '나와 닮은 고양이',
+    reward: '퀴즈 완주! +5 🐾',
+    saved: '카드가 저장됐어요 — 어디든 자랑하세요!',
+  },
+};
+const tt = (k) => L[lang][k] ?? L.en[k] ?? k;
+
+// ── 문항 (s = [치즈0, 고등어1, 삼색이2, 턱시도3]) ───────────
+const QUESTIONS = [
+  {
+    q: { en: 'Sunday afternoon — where do we find you?',
+         ko: '일요일 오후, 당신은 어디에?' },
+    a: [
+      { en: 'Sunbathing with a snack within paw’s reach', ko: '간식을 곁에 두고 햇볕을 쬐는 중', s: [3,0,0,0] },
+      { en: 'Perched somewhere high, quietly watching the street', ko: '높은 곳에 앉아 창밖을 조용히 관찰', s: [0,3,0,0] },
+      { en: 'Halfway through a project you’ll abandon by dinner', ko: '저녁 전에 접을 프로젝트를 신나게 벌이는 중', s: [0,0,3,0] },
+      { en: 'Tidying up so tomorrow-you says thank you', ko: '내일의 나를 위해 미리 정리정돈', s: [0,0,0,3] },
+    ],
+  },
+  {
+    q: { en: 'The treat drawer slides open. You…',
+         ko: '간식 서랍이 스르륵 열린다. 당신은…' },
+    a: [
+      { en: 'Are already sitting on it. Were you ever not?', ko: '이미 그 위에 앉아 있었다. 원래부터.', s: [3,0,0,0] },
+      { en: 'Materialize silently and pretend not to care', ko: '소리 없이 나타나 관심 없는 척', s: [0,3,0,0] },
+      { en: 'Sprint over, then get distracted by a passing fly', ko: '달려가다 지나가는 날벌레에 정신 팔림', s: [0,0,3,0] },
+      { en: 'Sit up straight and wait to be served', ko: '반듯하게 앉아 대접받길 기다림', s: [0,0,0,3] },
+    ],
+  },
+  {
+    q: { en: 'A total stranger walks up to you.',
+         ko: '낯선 사람이 당신에게 다가온다.' },
+    a: [
+      { en: 'Instant best friend — tell them everything', ko: '즉석에서 절친 성립 — 다 털어놓는다', s: [3,0,0,1] },
+      { en: 'Keep a polite, safe distance and assess', ko: '정중히 거리를 두고 상황 파악', s: [0,3,0,1] },
+      { en: 'Depends entirely on the vibe that second', ko: '그 순간의 기분에 따라 완전히 달라짐', s: [0,0,3,0] },
+      { en: 'A courteous hello, then quietly reassess', ko: '공손히 인사, 그리고 조용히 재평가', s: [0,1,0,3] },
+    ],
+  },
+  {
+    q: { en: 'Your perfect night looks like…',
+         ko: '당신에게 완벽한 밤이란…' },
+    a: [
+      { en: 'A big, noisy dinner with everyone you love', ko: '좋아하는 사람들과의 시끌벅적한 만찬', s: [3,0,0,0] },
+      { en: 'One trusted person and a quiet corner', ko: '믿는 사람 한 명과 조용한 구석 자리', s: [0,3,0,0] },
+      { en: 'No plan — wherever the night pulls you', ko: '무계획 — 밤이 이끄는 대로', s: [0,0,3,0] },
+      { en: 'A reservation, on time, exactly as planned', ko: '예약, 정시 도착, 계획 그대로', s: [0,0,0,3] },
+    ],
+  },
+  {
+    q: { en: 'Glance around your room right now.',
+         ko: '지금 당신 방을 한번 둘러본다면?' },
+    a: [
+      { en: 'Cozy chaos, and definitely some snacks', ko: '아늑한 난장판, 그리고 확실히 간식 몇 개', s: [3,0,1,0] },
+      { en: 'Sparse and deliberate — nothing wasted', ko: '군더더기 없이 딱 필요한 것만', s: [0,3,0,1] },
+      { en: 'A beautiful mess, mid-creation', ko: '무언가 만들어지는 중인 아름다운 혼돈', s: [0,0,3,0] },
+      { en: 'Spotless, everything in its place', ko: '티끌 하나 없이 제자리에', s: [0,0,0,3] },
+    ],
+  },
+  {
+    q: { en: 'Plans collapse at the last minute. You…',
+         ko: '약속이 막판에 엎어졌다. 당신은…' },
+    a: [
+      { en: 'Perfect — couch and snacks it is', ko: '완벽하다 — 소파와 간식 확정', s: [3,0,0,0] },
+      { en: 'Saw it coming, honestly', ko: '사실 예상하고 있었다', s: [0,3,0,0] },
+      { en: 'Improvise; the best nights are unplanned', ko: '즉흥으로 — 최고의 밤은 원래 무계획', s: [0,0,3,0] },
+      { en: 'Feel off until you’ve made a new plan', ko: '새 계획을 세우기 전까진 영 찝찝함', s: [0,0,0,3] },
+    ],
+  },
+  {
+    q: { en: 'Pick a treat.',
+         ko: '간식을 하나 고른다면?' },
+    a: [
+      { en: 'All of them. That was the answer.', ko: '전부 다. 그게 정답이었다.', s: [3,0,0,0] },
+      { en: 'Whichever is closest and quickest', ko: '제일 가깝고 빠른 걸로', s: [0,3,0,0] },
+      { en: 'Something I’ve never tried before', ko: '한 번도 안 먹어본 걸로', s: [0,0,3,0] },
+      { en: 'The one that pairs just right', ko: '가장 잘 어울리는 조합으로', s: [0,0,0,3] },
+    ],
+  },
+  {
+    q: { en: 'Friends would describe you as…',
+         ko: '친구들이 말하는 당신은…' },
+    a: [
+      { en: 'Warm, a little greedy, always around', ko: '따뜻하고, 살짝 먹보고, 늘 곁에 있는', s: [3,0,0,0] },
+      { en: 'Sharp, private, a bit mysterious', ko: '예리하고, 비밀스럽고, 조금 미스터리한', s: [0,3,0,0] },
+      { en: 'Spontaneous, artsy, never boring', ko: '즉흥적이고, 예술적이고, 지루할 틈 없는', s: [0,0,3,0] },
+      { en: 'Dependable, elegant, particular', ko: '믿음직하고, 우아하고, 까다로운', s: [0,0,0,3] },
+    ],
+  },
+];
+
+// ── 결과 콘텐츠 ─────────────────────────────────────────────
+const RESULTS = {
+  0: {
+    match: 3,
+    desc: {
+      en: ['You’re the sunshine of every room — warm, open, and always hungry for company (and snacks).',
+           'You make friends in seconds and let go of a grudge just as fast.',
+           'Your love language is food, and everyone’s invited.'],
+      ko: ['당신은 어느 방에서든 햇살 같은 존재 — 따뜻하고, 열려 있고, 늘 사람(과 간식)이 고픈 사람.',
+           '몇 초 만에 친구가 되고, 서운함도 그만큼 빨리 흘려보내요.',
+           '당신의 사랑 표현은 언제나 “먹을 것”, 그리고 모두를 초대하는 것.'],
+    },
+    compat: {
+      en: 'Best match: a Tuxedo — tidy enough to pick up every snack you drop.',
+      ko: '궁합: 턱시도 — 당신이 흘린 간식을 하나하나 챙겨줄 단정한 사람.',
+    },
+  },
+  1: {
+    match: 2,
+    desc: {
+      en: ['Cool, sharp, and always three moves ahead — you watch before you leap.',
+           'You keep your circle small and your plans quieter.',
+           'Behind that unbothered face is someone who notices absolutely everything.'],
+      ko: ['시크하고 예리하며 늘 세 수 앞을 봐요 — 뛰기 전에 먼저 관찰하는 사람.',
+           '곁에 두는 사람은 적게, 계획은 더 조용하게.',
+           '무심한 표정 뒤에서 사실은 모든 걸 눈치채고 있어요.'],
+    },
+    compat: {
+      en: 'Best match: a Calico — the glorious chaos that finally makes you improvise.',
+      ko: '궁합: 삼색이 — 당신을 마침내 즉흥적으로 만드는 찬란한 혼돈.',
+    },
+  },
+  2: {
+    match: 1,
+    desc: {
+      en: ['Unpredictable, expressive, gloriously your own — no two days the same.',
+           'You start ten things at once and somehow make them beautiful.',
+           'Rules are suggestions; your mood is the only weather report.'],
+      ko: ['종잡을 수 없고 표현이 풍부하며 완전히 자기다운 사람 — 하루도 같은 날이 없어요.',
+           '열 가지를 동시에 벌여놓고도 어떻게든 아름답게 만들어내죠.',
+           '규칙은 참고사항일 뿐, 오늘의 일기예보는 당신의 기분.'],
+    },
+    compat: {
+      en: 'Best match: a Mackerel — the calm strategist who lets you fly.',
+      ko: '궁합: 고등어 — 당신을 마음껏 날게 두는 차분한 전략가.',
+    },
+  },
+  3: {
+    match: 0,
+    desc: {
+      en: ['Poised, precise, and quietly in control — you make “put-together” look effortless.',
+           'You keep a plan, a backup plan, and a matching outfit for both.',
+           'Elegant on the surface, meticulous all the way down.'],
+      ko: ['차분하고 정확하며 조용히 상황을 장악하는 사람 — “빈틈없는 매무새”를 아무렇지 않게 해내죠.',
+           '계획이 있고, 예비 계획이 있고, 둘 다에 어울리는 옷까지 준비돼 있어요.',
+           '겉은 우아하고 속은 끝까지 꼼꼼한 사람.'],
+    },
+    compat: {
+      en: 'Best match: a Cheese Tabby — the warm mess that melts your schedule (in a good way).',
+      ko: '궁합: 치즈 — 당신의 빈틈없는 일정을 기분 좋게 무너뜨리는 따뜻한 말썽꾸러기.',
+    },
+  },
+};
+
+// ── 정적 라벨 세팅 ──────────────────────────────────────────
+$('introTitle').textContent = tt('introTitle');
+$('introSub').textContent = tt('introSub');
+$('startBtn').textContent = tt('start');
+$('introHome').textContent = tt('home');
+$('backBtn').textContent = tt('back');
+$('resKicker').textContent = tt('kicker');
+$('shareBtn').textContent = tt('share');
+$('adoptBtn').textContent = tt('adopt');
+$('retryBtn').textContent = tt('retry');
+$('jellyN').textContent = state.jelly;
+
+function toast(msg, ms = 2200) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function showScreen(name) {
+  $('introPanel').classList.toggle('hidden', name !== 'intro');
+  $('quizPanel').classList.toggle('hidden', name !== 'quiz');
+  $('resultPanel').classList.toggle('hidden', name !== 'result');
+}
+
+// ── 상태 ────────────────────────────────────────────────────
+let currentIndex = 0;
+const answers = [];
+let stage = null;
+let rewarded = false;
+
+// ── 문항 진행 ───────────────────────────────────────────────
+function renderQuestion(i) {
+  const item = QUESTIONS[i];
+  $('progFill').style.width = `${(i / QUESTIONS.length) * 100}%`;
+  $('qNum').textContent = `${i + 1} / ${QUESTIONS.length}`;
+  $('qText').textContent = item.q[lang] ?? item.q.en;
+
+  const opts = $('qOpts');
+  opts.innerHTML = '';
+  item.a.forEach((opt) => {
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.type = 'button';
+    b.textContent = opt[lang] ?? opt.en;
+    b.onclick = () => choose(opt);
+    opts.appendChild(b);
+  });
+
+  $('backBtn').disabled = i === 0;
+}
+
+function goToQuestion(i) {
+  currentIndex = i;
+  renderQuestion(i);
+  showScreen('quiz');
+}
+
+function choose(opt) {
+  answers[currentIndex] = opt;
+  if (currentIndex + 1 < QUESTIONS.length) goToQuestion(currentIndex + 1);
+  else showResult();
+}
+
+$('backBtn').onclick = () => { if (currentIndex > 0) goToQuestion(currentIndex - 1); };
+
+// ── 결과 계산 (동점이면 마지막 응답 성향 우선) ──────────────
+function computeBreed() {
+  const totals = [0, 0, 0, 0];
+  answers.forEach((opt) => opt.s.forEach((v, i) => totals[i] += v));
+  const max = Math.max(...totals);
+  const tied = totals.map((v, i) => i).filter((i) => totals[i] === max);
+  if (tied.length === 1) return tied[0];
+  for (let k = answers.length - 1; k >= 0; k--) {
+    const s = answers[k].s;
+    let best = 0, bi = -1;
+    tied.forEach((i) => { if (s[i] > best) { best = s[i]; bi = i; } });
+    if (bi >= 0) return bi;
+  }
+  return tied[0];
+}
+
+// ── 퀴즈 시작 / 다시하기 ────────────────────────────────────
+function startQuiz() {
+  if (stage) { stage.destroy(); stage = null; }
+  answers.length = 0;
+  rewarded = false;
+  goToQuestion(0);
+}
+$('startBtn').onclick = startQuiz;
+$('retryBtn').onclick = startQuiz;
+
+// ── 결과 화면 ───────────────────────────────────────────────
+function showResult() {
+  const breed = computeBreed();
+  const r = RESULTS[breed];
+  const breedName = t(`breed.${breed}`);
+
+  $('resTitle').textContent = lang === 'ko'
+    ? `당신은 ${breedName}상!`
+    : `You’re a ${breedName} type!`;
+  $('resDesc').innerHTML = (r.desc[lang] ?? r.desc.en).join('<br>');
+  $('resCompat').textContent = r.compat[lang] ?? r.compat.en;
+  $('adoptBtn').href = `../?adopt=${breed}`;
+
+  if (stage) { stage.destroy(); stage = null; }
+  try {
+    stage = new CatStage({ tl: $('tl'), gl: $('gl'), ov: $('ov'), breeds: [breed] });
+  } catch (e) {
+    $('fallback').style.display = 'grid';
+    $('fallback').textContent = 'WebGL2 required. / WebGL2 가 필요합니다.';
+    throw e;
+  }
+  setTimeout(() => stage && stage.react('happy'), 500);
+
+  if (!rewarded) {
+    rewarded = true;
+    state.jelly += 5;
+    state.stats.quizDone = (state.stats.quizDone || 0) + 1;
+    store.save(state);
+    $('jellyN').textContent = state.jelly;
+    toast(tt('reward'));
+  }
+
+  // 공유 카드 (결과 품종 기준)
+  $('shareBtn').onclick = () => shareCard(breed, breedName);
+
+  showScreen('result');
+}
+
+// ── 공유 카드 ───────────────────────────────────────────────
+function shareCard(breed, breedName) {
+  if (!stage) return;
+  const snap = stage.snapshot();
+  const card = document.createElement('canvas');
+  card.width = 1000; card.height = 1250;
+  const x = card.getContext('2d');
+  x.fillStyle = '#e8e1ce'; x.fillRect(0, 0, 1000, 1250);
+
+  // 상단 결과 문구
+  const phrase = lang === 'ko' ? `나는 ${breedName}상` : `I’m a ${breedName} type`;
+  x.fillStyle = '#33291d';
+  x.font = '600 56px Georgia, serif';
+  x.textAlign = 'center';
+  x.fillText(phrase, 500, 148);
+
+  // 고양이 (중앙 정사각 크롭)
+  const srcW = Math.min(snap.width, snap.height * 0.8);
+  const sx0 = (snap.width - srcW) / 2;
+  const sy0 = Math.max(0, (snap.height - srcW) / 2 - snap.height * 0.07);
+  x.drawImage(snap, sx0, sy0, srcW, srcW, 90, 200, 820, 820);
+  x.strokeStyle = '#33291d'; x.lineWidth = 3;
+  x.strokeRect(90, 200, 820, 820);
+
+  // 하단
+  x.fillStyle = '#6f6350';
+  x.font = '30px Georgia, serif';
+  x.fillText(lang === 'ko' ? '나와 닮은 고양이는?' : 'which cat are you?', 500, 1108);
+  x.fillStyle = '#a44a2a';
+  x.font = '28px Menlo, monospace';
+  x.fillText('catnip.fun', 500, 1168);
+
+  card.toBlob(async (blob) => {
+    const file = new File([blob], 'which-cat-am-i.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: 'catnip' }); return; } catch { /* 취소 */ }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'which-cat-am-i.png';
+    a.click();
+    toast(tt('saved'));
+  }, 'image/png');
+}
+
+showScreen('intro');
+</script>
+</body>
+</html>

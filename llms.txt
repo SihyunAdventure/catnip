@@ -7,5 +7,8 @@
 > feed it to grow your bond, and collect breeds. No install, no login, free.
 
 - [Home / adopt a cat](https://catnip.fun/)
-- [Laser pointer minigame](https://catnip.fun/play/laser)
+- [Laser pointer minigame](https://catnip.fun/play/laser) — wiggle a laser dot and let your cat pounce for jelly
+- [Cutie world cup minigame](https://catnip.fun/play/worldcup) — vote round by round for the cutest cat
+- [Which-cat-are-you quiz](https://catnip.fun/play/quiz) — answer a few questions to find your matching cat
+- [Cat balance game](https://catnip.fun/play/balance) — cat-themed would-you-rather dilemmas
 - [Source code](https://github.com/SihyunAdventure/catnip)
