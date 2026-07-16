@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>grooming — catnip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧶</text></svg>">
+<meta name="description" content="Brush the tangles out of your cat's fur — a calm, satisfying grooming game. catnip 미니게임: 엉킨 털을 빗으로 정리하며 골골거리는 고양이를 힐링해주세요.">
+<meta property="og:title" content="grooming — catnip · 빗질">
+<meta property="og:description" content="Drag the comb to brush out tangles and hear your cat purr. 드래그로 엉킨 털을 빗어 골골 소리를 들어보세요.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --paper:#e8e1ce;
+    --paper-hi:#f3eddc;
+    --ink:#33291d;
+    --ink-soft:#6f6350;
+    --rust:#a44a2a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);
+    background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  }
+  .stage{position:relative;height:100vh;min-height:520px;overflow:hidden}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #ov{touch-action:none}
+  #ov.playing{cursor:none}
+  .overlay{position:absolute;inset:0;pointer-events:none}
+  .overlay .ui{pointer-events:auto}
+
+  .hud-top{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 28px;font-family:var(--mono);font-size:13px;
+  }
+  .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .stat{background:var(--paper-hi);border:1px solid var(--ink);padding:5px 12px;font-weight:600;margin-left:8px}
+
+  .panel{
+    position:absolute;inset:0;display:grid;place-items:center;
+    background:rgba(232,225,206,.75);backdrop-filter:blur(3px);
+  }
+  .panel .card{
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:32px 40px;display:flex;flex-direction:column;gap:16px;align-items:center;
+    font-family:var(--mono);text-align:center;
+  }
+  .panel h2{margin:0;font-family:var(--serif);font-weight:500;font-size:24px}
+  .panel .hint{font-size:11.5px;color:var(--ink-soft);max-width:260px;line-height:1.7}
+  .panel .big{font-size:40px;font-weight:700;line-height:1}
+  .row{display:flex;gap:10px}
+  .btn{
+    appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    padding:10px 18px;cursor:pointer;
+  }
+  .btn.primary{background:var(--ink);color:var(--paper-hi)}
+  .fallback{
+    position:absolute;inset:0;display:none;place-items:center;
+    font-family:var(--mono);font-size:13px;color:var(--rust);
+  }
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<section class="stage">
+  <canvas id="tl"></canvas>
+  <canvas id="gl"></canvas>
+  <canvas id="ov"></canvas>
+  <div class="fallback" id="fallback">WebGL2 required.</div>
+  <div class="overlay">
+    <div class="hud-top">
+      <a class="wordmark" href="../">catnip</a>
+      <div>
+        <span class="stat" id="timeBox">45</span>
+        <span class="stat"><span id="clearsN">0</span>/7 🧶</span>
+        <span class="stat">🐾 <span id="jellyN">0</span></span>
+      </div>
+    </div>
+
+    <div class="panel ui" id="startPanel">
+      <div class="card">
+        <h2 data-i18n-local="title"></h2>
+        <div class="hint" data-i18n-local="hint"></div>
+        <button class="btn primary" id="startBtn" data-i18n-local="start"></button>
+        <a class="btn" href="../" data-i18n-local="home"></a>
+      </div>
+    </div>
+
+    <div class="panel ui hidden" id="endPanel">
+      <div class="card">
+        <h2 data-i18n-local="done"></h2>
+        <div class="big"><span id="finalClears">0</span><span style="font-size:18px">/7</span></div>
+        <div class="hint" data-i18n-local="tidied"></div>
+        <div style="font-size:13px"><span data-i18n-local="timeLbl"></span> <span id="finalTime">0</span>s</div>
+        <div style="font-size:14px"><span data-i18n-local="earned"></span> +<span id="earnedN">0</span> 🐾</div>
+        <div class="row">
+          <button class="btn primary" id="againBtn" data-i18n-local="again"></button>
+          <a class="btn" href="../" data-i18n-local="home"></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="module">
+import { CatStage } from '../engine/cat-stage.js';
+import * as store from '../engine/save.js';
+import { lang } from '../engine/i18n.js';
+
+document.documentElement.lang = lang;
+
+// ── 로컬 사전 (engine/i18n.js 수정 금지) ─────────────────────
+const DICT = {
+  en: {
+    title: 'grooming',
+    hint: 'drag the comb across your cat to brush out the tangles — they’ll purr!',
+    done: 'all tidy!',
+    timeUp: 'time’s up!',
+    tidied: 'tangles brushed out',
+    timeLbl: 'time', earned: 'earned', again: 'play again', home: 'home', start: 'start',
+  },
+  ko: {
+    title: '빗질',
+    hint: '드래그로 엉킨 털을 빗어주세요 — 고양이가 골골거려요!',
+    done: '다 빗었다!',
+    timeUp: '시간 끝!',
+    tidied: '정리한 엉킨 털',
+    timeLbl: '걸린 시간', earned: '획득', again: '다시 하기', home: '집으로', start: '시작',
+  },
+};
+const L = (k) => (DICT[lang] && DICT[lang][k]) || DICT.en[k] || k;
+document.querySelectorAll('[data-i18n-local]').forEach(el => { el.textContent = L(el.dataset.i18nLocal); });
+
+const $ = (id) => document.getElementById(id);
+let state = store.load();
+if (!state.cat) location.href = '../';   // 입양 전이면 홈으로
+
+let stage;
+try {
+  stage = new CatStage({ tl: $('tl'), gl: $('gl'), ov: $('ov'), breeds: [state.cat?.breed ?? 0] });
+} catch (e) {
+  $('fallback').style.display = 'grid';
+  $('fallback').textContent = 'WebGL2 required.';
+  throw e;
+}
+
+const ROUND = 45;
+const TANGLE_N = 7;
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+let playing = false;
+let clears = 0;
+let timeLeft = ROUND;
+let timerId = null;
+let tangles = [];
+let debris = [];
+let sparkles = [];
+
+// 커서 (스크린 좌표) + 이전 프레임 위치 (빗질 세그먼트용)
+const cursor = { x: -9999, y: -9999 };
+const prev = { x: -9999, y: -9999 };
+let pressed = false;
+let brushAng = Math.PI / 2;   // 빗 방향 (진행 방향)
+let brushing = false;         // 이번 프레임 엉킨 털을 지나갔는가
+
+// 엉킨 털 앵커: center(=머리 중심) 기준 상대좌표 (R 배수). 머리 상단·볼·몸통·엉덩이 분산.
+const ANCHORS = [
+  [-0.33, -0.70], [0.34, -0.68],
+  [-0.60, 0.10], [0.60, 0.08],
+  [0.00, 1.12],
+  [-0.52, 1.82], [0.50, 1.78],
+];
+
+function makeTangle(fx, fy) {
+  // 부스스한 잉크 노이즈 뭉치: 작은 원 8~12개를 시드 고정 오프셋으로 겹침
+  const blobs = [];
+  const n = Math.floor(rnd(8, 13));
+  for (let i = 0; i < n; i++) {
+    const a = rnd(0, Math.PI * 2), rad = rnd(0, 0.7);
+    blobs.push({ ox: Math.cos(a) * rad, oy: Math.sin(a) * rad, r: rnd(0.35, 0.6) });
+  }
+  return { fx: fx + rnd(-0.09, 0.09), fy: fy + rnd(-0.09, 0.09), health: 100, cleared: false, blobs };
+}
+
+// ── 오디오 (브러시 노이즈 + 클리어 핑) ──────────────────────
+let actx = null, brushGain = null, brushBP = null, brushLevel = 0;
+
+function initAudio() {
+  if (actx) { actx.resume?.(); return; }
+  try {
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    const len = actx.sampleRate * 2;
+    const buf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;   // white noise
+    const src = actx.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    brushBP = actx.createBiquadFilter();
+    brushBP.type = 'bandpass'; brushBP.frequency.value = 1800; brushBP.Q.value = 1.1;
+    brushGain = actx.createGain();
+    brushGain.gain.value = 0;
+    src.connect(brushBP).connect(brushGain).connect(actx.destination);
+    src.start();
+  } catch { actx = null; }
+}
+
+function ping() {
+  if (!actx) return;
+  const now = actx.currentTime;
+  [880, 1174.66, 1396.91].forEach((f, i) => {   // A5 · D6 · F6 — 밝은 셋
+    const o = actx.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+    const g = actx.createGain();
+    const t0 = now + i * 0.012;
+    g.gain.setValueAtTime(0, t0);
+    g.gain.linearRampToValueAtTime(0.13, t0 + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0008, t0 + 0.5);
+    o.connect(g).connect(actx.destination);
+    o.start(t0); o.stop(t0 + 0.55);
+  });
+}
+
+// ── 점-선분 거리 (빗질 스윕 판정) ──────────────────────────
+function segDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const l2 = dx * dx + dy * dy;
+  let tt = l2 ? ((px - ax) * dx + (py - ay) * dy) / l2 : 0;
+  tt = Math.max(0, Math.min(1, tt));
+  return Math.hypot(px - (ax + dx * tt), py - (ay + dy * tt));
+}
+
+function spawnDebris(x, y, vx, vy) {
+  const m = Math.hypot(vx, vy) || 1;
+  const n = Math.floor(rnd(2, 4));
+  for (let i = 0; i < n; i++) {
+    // 스트로크 반대방향으로 튀어 낙하
+    debris.push({
+      x: x + rnd(-3, 3), y: y + rnd(-3, 3),
+      vx: -(vx / m) * rnd(0.6, 1.6) + rnd(-0.6, 0.6),
+      vy: -(vy / m) * rnd(0.6, 1.4) + rnd(-1.4, -0.2),
+      life: 1, r: rnd(1.2, 2.4),
+    });
+  }
+}
+
+function clearTangle(tg, center) {
+  tg.cleared = true;
+  clears++;
+  $('clearsN').textContent = clears;
+  stage.react('happy');
+  ping();
+  const ax = center.x + tg.fx * center.R, ay = center.y + tg.fy * center.R;
+  for (let i = 0; i < 7; i++)
+    sparkles.push({
+      x: ax + rnd(-10, 10), y: ay + rnd(-10, 10),
+      vx: rnd(-0.6, 0.6), vy: rnd(-1.5, -0.5),
+      life: 1, size: rnd(11, 20),
+    });
+  if (clears >= TANGLE_N) endRound();
+}
+
+// ── 입력 ────────────────────────────────────────────────────
+function setCursor(e) {
+  const r = $('ov').getBoundingClientRect();
+  cursor.x = e.clientX - r.left;
+  cursor.y = e.clientY - r.top;
+}
+$('ov').addEventListener('pointerdown', (e) => {
+  setCursor(e);
+  prev.x = cursor.x; prev.y = cursor.y;
+  pressed = true;
+  initAudio();
+});
+$('ov').addEventListener('pointermove', setCursor);
+const release = () => { pressed = false; };
+$('ov').addEventListener('pointerup', release);
+$('ov').addEventListener('pointercancel', release);
+$('ov').addEventListener('pointerleave', release);
+
+$('jellyN').textContent = state.jelly;
+
+function startRound() {
+  clears = 0; timeLeft = ROUND; tangles = []; debris = []; sparkles = [];
+  for (const [fx, fy] of ANCHORS) tangles.push(makeTangle(fx, fy));
+  $('clearsN').textContent = '0';
+  $('timeBox').textContent = ROUND;
+  $('startPanel').classList.add('hidden');
+  $('endPanel').classList.add('hidden');
+  $('ov').classList.add('playing');
+  initAudio();
+  playing = true;
+  timerId = setInterval(() => {
+    timeLeft--;
+    $('timeBox').textContent = timeLeft;
+    if (timeLeft <= 0) endRound();
+  }, 1000);
+}
+
+function endRound() {
+  if (!playing) return;
+  playing = false;
+  clearInterval(timerId);
+  $('ov').classList.remove('playing');
+  brushing = false;
+  stage.lookOverride = null;
+
+  const allCleared = clears >= TANGLE_N;
+  const remain = allCleared ? Math.max(0, timeLeft) : 0;
+  const earned = clears * 1 + (allCleared ? Math.round(remain / 5) : 0);
+  const timeTaken = ROUND - Math.max(0, timeLeft);
+
+  state = store.mutate((s) => {
+    s.jelly += earned;
+    s.stats.groomRuns = (s.stats.groomRuns || 0) + 1;
+  });
+
+  $('endPanel').querySelector('h2').textContent = allCleared ? L('done') : L('timeUp');
+  $('finalClears').textContent = clears;
+  $('finalTime').textContent = timeTaken;
+  $('earnedN').textContent = earned;
+  $('jellyN').textContent = state.jelly;
+  $('endPanel').classList.remove('hidden');
+}
+
+$('startBtn').onclick = startRound;
+$('againBtn').onclick = startRound;
+
+// ── 게임 루프 (stage.onFrame 훅) ────────────────────────────
+// 주의: petMeter는 절대 리셋하지 않는다 — 엔진이 드래그로 자연 축적해
+//       골골(purr)·눈웃음이 저절로 나온다. 빗질 = 쓰다듬기.
+stage.onFrame = (t, octx, { center }) => {
+  // 시선이 빗 끝을 쫓게
+  if (playing && cursor.x > -100) stage.lookOverride = { x: cursor.x, y: cursor.y };
+
+  brushing = false;
+  let speed = 0;
+
+  if (playing) {
+    const dx = cursor.x - prev.x, dy = cursor.y - prev.y;
+    speed = Math.hypot(dx, dy);
+    if (speed > 0.5) brushAng = Math.atan2(dy, dx);
+
+    if (pressed && speed > 0.1) {
+      for (const tg of tangles) {
+        if (tg.cleared) continue;
+        const ax = center.x + tg.fx * center.R, ay = center.y + tg.fy * center.R;
+        const hitR = center.R * 0.24 * (0.5 + 0.5 * (tg.health / 100));
+        if (segDist(ax, ay, prev.x, prev.y, cursor.x, cursor.y) < hitR) {
+          tg.health -= speed * 0.35;
+          brushing = true;
+          stage.splat(cursor.x, cursor.y, dx, dy);   // 털 출렁
+          if (Math.random() < 0.6) spawnDebris(cursor.x, cursor.y, dx, dy);
+          if (tg.health <= 0) { clearTangle(tg, center); if (!playing) break; }
+        }
+      }
+    }
+  }
+  prev.x = cursor.x; prev.y = cursor.y;
+
+  // 브러시 노이즈: 빗질 중 저볼륨, 멈추면 페이드
+  if (actx && brushGain) {
+    const target = brushing ? 0.06 : 0;
+    brushLevel += (target - brushLevel) * 0.18;
+    brushGain.gain.value = brushLevel;
+    brushBP.frequency.value = 1600 + Math.min(1800, speed * 45);
+  }
+
+  // 엉킨 털 그리기 (health에 비례해 알파·크기 축소)
+  for (const tg of tangles) {
+    if (tg.cleared) continue;
+    const ax = center.x + tg.fx * center.R, ay = center.y + tg.fy * center.R;
+    const h = Math.max(0, tg.health / 100);
+    const scale = center.R * 0.22 * (0.5 + 0.5 * h);
+    octx.save();
+    octx.translate(ax, ay);
+    octx.fillStyle = 'rgba(24,19,13,1)';
+    for (const b of tg.blobs) {
+      octx.globalAlpha = 0.25 * (0.35 + 0.65 * h);
+      octx.beginPath();
+      octx.arc(b.ox * scale, b.oy * scale, b.r * scale, 0, Math.PI * 2);
+      octx.fill();
+    }
+    octx.restore();
+  }
+  octx.globalAlpha = 1;
+
+  // 털 부스러기 파티클
+  for (let i = debris.length - 1; i >= 0; i--) {
+    const p = debris[i];
+    p.x += p.vx; p.y += p.vy; p.vy += 0.16; p.life -= 0.016;
+    if (p.life <= 0) { debris.splice(i, 1); continue; }
+    octx.globalAlpha = Math.min(1, p.life * 1.3);
+    octx.fillStyle = 'rgba(122,112,96,1)';
+    octx.beginPath();
+    octx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    octx.fill();
+  }
+  octx.globalAlpha = 1;
+
+  // 클리어 스파클
+  for (let i = sparkles.length - 1; i >= 0; i--) {
+    const s = sparkles[i];
+    s.x += s.vx; s.y += s.vy; s.vy += 0.03; s.life -= 0.02;
+    if (s.life <= 0) { sparkles.splice(i, 1); continue; }
+    octx.globalAlpha = Math.min(1, s.life * 1.4);
+    octx.font = `${s.size}px serif`;
+    octx.fillText('✨', s.x, s.y);
+  }
+  octx.globalAlpha = 1;
+
+  // 빗 커서 (플레이 중, cursor:none 상태)
+  if (playing && cursor.x > -100) {
+    octx.save();
+    octx.translate(cursor.x, cursor.y);
+    octx.rotate(brushAng);
+    octx.fillStyle = 'rgba(51,41,29,0.92)';
+    octx.strokeStyle = 'rgba(51,41,29,0.92)';
+    octx.lineWidth = 1.6;
+    octx.lineCap = 'round';
+    // 손잡이 (뒤쪽 작은 사각)
+    octx.fillRect(-15, -6, 11, 12);
+    // 빗살 5개 (진행 방향으로 뻗음)
+    for (const oy of [-6, -3, 0, 3, 6]) {
+      octx.beginPath();
+      octx.moveTo(-2, oy);
+      octx.lineTo(12, oy);
+      octx.stroke();
+    }
+    octx.restore();
+  }
+};
+</script>
+</body>
+</html>

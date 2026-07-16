@@ -219,20 +219,25 @@
   <p>catnip is a free browser game where you adopt, pet, and raise a virtual cat.
   Every cat is drawn entirely in code — about 25,000 fur strands rendered in a single WebGL
   draw call, with spring-field physics that makes the fur part and ripple under your cursor.
-  Pet your cat until it purrs and feed it to grow your bond. There are five minigames to play:
+  Pet your cat until it purrs and feed it to grow your bond. There are eight minigames to play:
   chase the <a href="/play/laser">laser pointer</a> to earn jelly 🐾, crown a winner in the
   <a href="/play/worldcup">cutie world cup</a>, meet your match in the
   <a href="/play/quiz">which-cat-are-you quiz</a>, settle feline dilemmas in
-  <a href="/play/balance">cat balance</a>, or dangle a <a href="/play/fishing">fishing rod</a>
-  and let them grab it. Browse every breed you've met so far in the <a href="/cats">cat book</a>.
+  <a href="/play/balance">cat balance</a>, dangle a <a href="/play/fishing">fishing rod</a>
+  and let them grab it, tap along to a <a href="/play/knead">kneading</a> rhythm, time the jump
+  in <a href="/play/box">the box</a>, or brush out the tangles in a <a href="/play/groom">grooming</a>
+  session. Browse every breed you've met so far in the <a href="/cats">cat book</a>.
   No install, no login, free.</p>
   <p>catnip은 브라우저에서 바로 하는 무료 고양이 게임입니다. 고양이를 입양해 이름을 지어주고,
-  쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓여요. 미니게임도 다섯 가지 즐길 수 있어요 —
+  쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓여요. 미니게임도 여덟 가지 즐길 수 있어요 —
   <a href="/play/laser">레이저 포인터</a>로 놀아 젤리 🐾를 모으고,
   <a href="/play/worldcup">귀요미 월드컵</a>에서 최고의 고양이를 뽑고,
   <a href="/play/quiz">닮은 고양이 퀴즈</a>로 나와 닮은 고양이를 찾고,
   <a href="/play/balance">냥 밸런스</a>로 고양이 밸런스 게임을 즐기고,
-  <a href="/play/fishing">낚싯대</a>를 흔들어 고양이가 낚아채게 해주세요.
+  <a href="/play/fishing">낚싯대</a>를 흔들어 고양이가 낚아채게 하고,
+  <a href="/play/knead">꾹꾹이</a> 리듬에 맞춰 탭하고,
+  <a href="/play/box">박스</a> 게임에서 타이밍 맞춰 폴짝 뛰고,
+  <a href="/play/groom">빗질</a>로 엉킨 털을 골라주세요.
   그동안 만난 품종은 <a href="/cats">도감</a>에서 모아볼 수 있어요.
   모든 고양이는 이미지 없이 코드만으로 그려집니다 — WebGL 인스턴싱으로 렌더링되는 25,000가닥의 털.
   설치도 로그인도 없습니다.</p>
@@ -292,6 +297,15 @@ const GAMES = [
   { href: 'play/fishing.html', emoji: '🎣',
     en: { name: 'Fishing Rod', desc: 'Dangle the feather, let them grab it.' },
     ko: { name: '낚싯대', desc: '깃털을 흔들다 낚아채게 해주세요.' } },
+  { href: 'play/knead.html', emoji: '🍞',
+    en: { name: 'Kneading', desc: 'Tap to the rhythm of tiny paws.' },
+    ko: { name: '꾹꾹이', desc: '앞발 리듬에 맞춰 탭하세요.' } },
+  { href: 'play/box.html', emoji: '📦',
+    en: { name: 'The Box', desc: 'If it fits, they sits — time the jump.' },
+    ko: { name: '박스', desc: '상자가 지나갈 때 폴짝 — 들어가면 앉는다.' } },
+  { href: 'play/groom.html', emoji: '🧶',
+    en: { name: 'Grooming', desc: 'Brush out the tangles, hear the purr.' },
+    ko: { name: '빗질', desc: '엉킨 털을 빗어주면 골골골.' } },
 ];
 const GAME_UI = {
   en: { title: 'pick a game', close: 'close', catbookName: 'Cat Book', catbookDesc: 'Browse every breed you can collect.' },

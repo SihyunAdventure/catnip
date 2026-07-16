@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>kneading — catnip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍞</text></svg>">
+<meta name="description" content="Make biscuits! Tap to the beat as your cat kneads the cushion — an ASMR rhythm game. catnip 미니게임: 꾹꾹이 리듬에 맞춰 탭하세요.">
+<meta property="og:title" content="kneading — catnip · 꾹꾹이">
+<meta property="og:description" content="Tap on the beat as your cat kneads the cushion. 방석을 꾹꾹이하는 박자에 맞춰 탭하세요.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --paper:#e8e1ce;
+    --paper-hi:#f3eddc;
+    --ink:#33291d;
+    --ink-soft:#6f6350;
+    --rust:#a44a2a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);
+    background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  }
+  .stage{position:relative;height:100vh;min-height:520px;overflow:hidden}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #ov{touch-action:none}
+  #ov.playing{cursor:pointer}
+  .overlay{position:absolute;inset:0;pointer-events:none}
+  .overlay .ui{pointer-events:auto}
+
+  .hud-top{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 28px;font-family:var(--mono);font-size:13px;
+  }
+  .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .stat{background:var(--paper-hi);border:1px solid var(--ink);padding:5px 12px;font-weight:600;margin-left:8px}
+
+  .panel{
+    position:absolute;inset:0;display:grid;place-items:center;
+    background:rgba(232,225,206,.75);backdrop-filter:blur(3px);
+  }
+  .panel .card{
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:32px 40px;display:flex;flex-direction:column;gap:16px;align-items:center;
+    font-family:var(--mono);text-align:center;
+  }
+  .panel h2{margin:0;font-family:var(--serif);font-weight:500;font-size:24px}
+  .panel .hint{font-size:11.5px;color:var(--ink-soft);max-width:280px;line-height:1.7}
+  .panel .big{font-size:40px;font-weight:700}
+  .brk{font-size:12px;color:var(--ink-soft);line-height:1.9}
+  .brk b{color:var(--ink)}
+  .row{display:flex;gap:10px}
+  .btn{
+    appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    padding:10px 18px;cursor:pointer;
+  }
+  .btn.primary{background:var(--ink);color:var(--paper-hi)}
+  #toast{
+    position:absolute;top:72px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper-hi);
+    font-family:var(--mono);font-size:12px;padding:9px 16px;
+    opacity:0;transition:opacity .25s;pointer-events:none;
+  }
+  #toast.show{opacity:1}
+  .fallback{
+    position:absolute;inset:0;display:none;place-items:center;
+    font-family:var(--mono);font-size:13px;color:var(--rust);
+  }
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<section class="stage">
+  <canvas id="tl"></canvas>
+  <canvas id="gl"></canvas>
+  <canvas id="ov"></canvas>
+  <div class="fallback" id="fallback">WebGL2 required.</div>
+  <div class="overlay">
+    <div class="hud-top">
+      <a class="wordmark" href="../">catnip</a>
+      <div>
+        <span class="stat" id="timeBox">60</span>
+        <span class="stat"><span id="scoreN">0</span> 🍞</span>
+        <span class="stat">🐾 <span id="jellyN">0</span></span>
+      </div>
+    </div>
+
+    <div class="panel ui" id="startPanel">
+      <div class="card">
+        <h2 data-i18n-local="title"></h2>
+        <div class="hint" data-i18n-local="hint"></div>
+        <button class="btn primary" id="startBtn" data-i18n-local="start"></button>
+        <a class="btn" href="../" data-i18n-local="home"></a>
+      </div>
+    </div>
+
+    <div class="panel ui hidden" id="endPanel">
+      <div class="card">
+        <h2 data-i18n-local="done"></h2>
+        <div class="big"><span id="finalScore">0</span> <span style="font-size:16px" data-i18n-local="score"></span></div>
+        <div class="brk">
+          <span data-i18n-local="perfect"></span> <b id="pCount">0</b> ·
+          <span data-i18n-local="good"></span> <b id="gCount">0</b> ·
+          <span data-i18n-local="miss"></span> <b id="mCount">0</b><br>
+          <span data-i18n-local="maxcombo"></span> <b id="mcCount">0</b>
+        </div>
+        <div style="font-size:14px"><span data-i18n-local="earned"></span> +<span id="earnedN">0</span> 🐾</div>
+        <div class="row">
+          <button class="btn primary" id="againBtn" data-i18n-local="again"></button>
+          <a class="btn" href="../" data-i18n-local="home"></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+  </div>
+</section>
+
+<script type="module">
+import { CatStage } from '../engine/cat-stage.js';
+import * as store from '../engine/save.js';
+import { lang } from '../engine/i18n.js';
+
+document.documentElement.lang = lang;
+
+// ── 로컬 사전 (engine/i18n.js 수정 금지) ─────────────────────
+const DICT = {
+  en: {
+    title: 'kneading',
+    hint: 'tap on the beat as your cat kneads the cushion — space, click, or tap. keep the combo going!',
+    ready: 'get ready…', done: 'time!',
+    score: 'score', earned: 'earned', again: 'play again', home: 'home', start: 'start',
+    perfect: 'perfect', good: 'good', miss: 'miss', maxcombo: 'max combo',
+  },
+  ko: {
+    title: '꾹꾹이',
+    hint: '고양이가 방석을 꾹꾹이하는 박자에 맞춰 탭하세요 — 스페이스·클릭·터치. 콤보를 이어가세요!',
+    ready: '준비…', done: '끝!',
+    score: '점수', earned: '획득', again: '다시 하기', home: '집으로', start: '시작',
+    perfect: '퍼펙트', good: '굿', miss: '미스', maxcombo: '최대 콤보',
+  },
+};
+const L = (k) => (DICT[lang] && DICT[lang][k]) || DICT.en[k] || k;
+document.querySelectorAll('[data-i18n-local]').forEach(el => { el.textContent = L(el.dataset.i18nLocal); });
+
+const $ = (id) => document.getElementById(id);
+let state = store.load();
+if (!state.cat) location.href = '../';   // 입양 전이면 홈으로
+
+let stage;
+try {
+  stage = new CatStage({ tl: $('tl'), gl: $('gl'), ov: $('ov'), breeds: [state.cat?.breed ?? 0] });
+} catch (e) {
+  $('fallback').style.display = 'grid';
+  $('fallback').textContent = 'WebGL2 required.';
+  throw e;
+}
+
+// ── 리듬 상수 ───────────────────────────────────────────────
+const ROUND = 60;                 // 초
+const BPM = 88;
+const BEAT = 60 / BPM;            // 비트 간격(초) ≈ 0.6818
+const LEAD_IN = 1.2;             // 시작 후 첫 비트까지 리드인(초)
+const APPROACH = BEAT * 1.7;      // 어프로치 링이 다가오는 시간(초)
+const SCHED_AHEAD = 0.1;         // 스케줄 선행(초)
+const SCHED_TICK = 25;           // 스케줄러 인터벌(ms)
+const PERFECT = 0.060;           // |Δt| 판정 윈도 — 퍼펙트(초)
+const GOOD = 0.130;              // 판정 윈도 — 굿(초)
+
+// ── 게임 상태 ───────────────────────────────────────────────
+let playing = false;
+let score = 0, combo = 0, maxCombo = 0;
+let perfectCount = 0, goodCount = 0, missCount = 0;
+let timeLeft = ROUND;
+let timerId = null, schedId = null;
+
+let actx = null, master = null, noiseBuf = null;
+let beats = [];                   // { time(audio초), n(비트번호), hit(false|'perfect'|'good'|'miss') }
+let nextBeatTime = 0, beatCount = 0;
+
+// 방석/발 연출 상태 (onFrame 에서 매 프레임 갱신)
+let padX = -9999, padY = -9999, padRX = 40, padRY = 24;
+let blobPulse = 0;                // 눌림 0..1 (감쇠)
+let pawAnim = null;               // { t0, side }
+let pawSide = 1;
+let flashes = [];                 // { t0, kind } 히트 링 플래시
+let pops = [];                    // { t0, x, y, text, col } 판정 팝업
+
+$('jellyN').textContent = state.jelly;
+
+function toast(msg, ms = 1000) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// ── 오디오: 부드러운 "톡" 합성 ─────────────────────────────
+function initAudio() {
+  if (actx) return;
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  master = actx.createGain();
+  master.gain.value = 0.9;
+  const soft = actx.createBiquadFilter();
+  soft.type = 'lowpass'; soft.frequency.value = 2600;
+  master.connect(soft).connect(actx.destination);
+  // 짧은 화이트 노이즈 버퍼(클릭용)
+  const len = Math.floor(actx.sampleRate * 0.2);
+  noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+}
+
+function playTick(when, down) {
+  // 낮은 사인 톤 (몸통)
+  const osc = actx.createOscillator();
+  osc.type = 'sine';
+  const f0 = down ? 210 : 170;
+  osc.frequency.setValueAtTime(f0, when);
+  osc.frequency.exponentialRampToValueAtTime(f0 * 0.5, when + 0.13);
+  const g = actx.createGain();
+  const amp = down ? 0.22 : 0.15;
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.exponentialRampToValueAtTime(amp, when + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + 0.15);
+  osc.connect(g).connect(master);
+  osc.start(when); osc.stop(when + 0.17);
+  // 필터드 노이즈 버스트 (부드러운 클릭)
+  const nb = actx.createBufferSource();
+  nb.buffer = noiseBuf;
+  const bp = actx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = down ? 900 : 1250; bp.Q.value = 0.7;
+  const ng = actx.createGain();
+  ng.gain.setValueAtTime(down ? 0.14 : 0.10, when);
+  ng.gain.exponentialRampToValueAtTime(0.0001, when + 0.05);
+  nb.connect(bp).connect(ng).connect(master);
+  nb.start(when); nb.stop(when + 0.06);
+}
+
+// ── 리듬 스케줄러: lookahead ─────────────────────────────────
+function scheduler() {
+  const ahead = actx.currentTime + SCHED_AHEAD;
+  while (nextBeatTime < ahead) {
+    const down = beatCount % 4 === 0;
+    playTick(nextBeatTime, down);
+    beats.push({ time: nextBeatTime, n: beatCount, hit: false });
+    beatCount++;
+    nextBeatTime += BEAT;
+  }
+}
+
+// ── 판정 ────────────────────────────────────────────────────
+function judge() {
+  if (!playing || !actx) return;
+  const now = actx.currentTime;
+  let best = null, bestD = Infinity;
+  for (const b of beats) {
+    if (b.hit) continue;
+    const d = Math.abs(b.time - now);
+    if (d < bestD) { bestD = d; best = b; }
+  }
+  if (best && bestD <= GOOD) {
+    best.hit = bestD <= PERFECT ? 'perfect' : 'good';
+    registerHit(best.hit);
+  } else {
+    // 박자에서 벗어난 입력 → 미스
+    combo = 0;
+    missCount++;
+    pushPop(L('miss'), '#a44a2a');
+  }
+}
+
+function registerHit(kind) {
+  combo++;
+  maxCombo = Math.max(maxCombo, combo);
+  if (kind === 'perfect') { score += 3; perfectCount++; }
+  else { score += 1; goodCount++; }
+  $('scoreN').textContent = score;
+
+  // 방석 눌림 + 스프링 필드 splat (털도 함께 출렁)
+  blobPulse = 1;
+  if (stage) stage.splat(padX, padY, 0, 12);
+  // 앞발 누름 애니메이션 (좌우 교대 = 꾹꾹이)
+  pawAnim = { t0: performance.now(), side: pawSide };
+  pawSide *= -1;
+
+  flashes.push({ t0: performance.now(), kind });
+  pushPop(kind === 'perfect' ? L('perfect') : L('good'),
+          kind === 'perfect' ? '#c96b52' : '#6f6350');
+  // 퍼펙트가 이어질 때 이따금 하트 반응
+  if (kind === 'perfect' && combo % 6 === 0 && stage) stage.react('happy');
+}
+
+function pushPop(text, col) {
+  pops.push({ t0: performance.now(), x: padX, y: padY - padRY - 24, text, col });
+  if (pops.length > 8) pops.shift();
+}
+
+// ── 입력: 클릭/터치/스페이스 ────────────────────────────────
+$('ov').addEventListener('pointerdown', () => { if (playing) judge(); });
+addEventListener('keydown', (e) => {
+  if (e.code === 'Space' || e.key === ' ') {
+    if (playing) { e.preventDefault(); judge(); }
+  }
+});
+
+// ── 라운드 ──────────────────────────────────────────────────
+function startRound() {
+  initAudio();
+  if (actx.state === 'suspended') actx.resume();
+
+  score = 0; combo = 0; maxCombo = 0;
+  perfectCount = 0; goodCount = 0; missCount = 0;
+  timeLeft = ROUND; beats = []; beatCount = 0;
+  blobPulse = 0; pawAnim = null; pawSide = 1; flashes = []; pops = [];
+  nextBeatTime = actx.currentTime + LEAD_IN;
+
+  $('scoreN').textContent = '0';
+  $('timeBox').textContent = ROUND;
+  $('startPanel').classList.add('hidden');
+  $('endPanel').classList.add('hidden');
+  $('ov').classList.add('playing');
+  toast(L('ready'), 1100);
+
+  playing = true;
+  schedId = setInterval(scheduler, SCHED_TICK);
+  scheduler();
+  timerId = setInterval(() => {
+    timeLeft--;
+    $('timeBox').textContent = Math.max(0, timeLeft);
+    if (timeLeft <= 0) endRound();
+  }, 1000);
+}
+
+function endRound() {
+  playing = false;
+  clearInterval(timerId);
+  clearInterval(schedId);
+  $('ov').classList.remove('playing');
+  stage.petMeter = 0;
+
+  const earned = Math.floor(score / 8) + Math.round(maxCombo / 2);
+  state = store.mutate((s) => {
+    s.jelly += earned;
+    s.stats.kneadBest = Math.max(s.stats.kneadBest || 0, score);
+  });
+
+  $('finalScore').textContent = score;
+  $('pCount').textContent = perfectCount;
+  $('gCount').textContent = goodCount;
+  $('mCount').textContent = missCount;
+  $('mcCount').textContent = maxCombo;
+  $('earnedN').textContent = earned;
+  $('jellyN').textContent = state.jelly;
+  $('endPanel').classList.remove('hidden');
+}
+
+$('startBtn').onclick = startRound;
+$('againBtn').onclick = startRound;
+
+// ── 방석/발 드로잉 ──────────────────────────────────────────
+function drawPad(octx, t, beatGlow) {
+  const sx = 1 + 0.16 * blobPulse;       // 눌리면 가로로 퍼짐
+  const sy = 1 - 0.30 * blobPulse;       // 세로로 눌림
+  octx.save();
+  octx.translate(padX, padY);
+  // 바닥 그림자
+  octx.fillStyle = 'rgba(51,41,29,0.10)';
+  octx.beginPath();
+  octx.ellipse(0, padRY * 0.55, padRX * 1.02, padRY * 0.4, 0, 0, Math.PI * 2);
+  octx.fill();
+  // 크림색 반죽/방석 블롭
+  octx.scale(sx, sy);
+  const g = octx.createRadialGradient(-padRX * 0.25, -padRY * 0.4, padRY * 0.2, 0, 0, padRX);
+  g.addColorStop(0, '#f7f1e2');
+  g.addColorStop(0.7, '#f3eddc');
+  g.addColorStop(1, '#e4dbc2');
+  octx.fillStyle = g;
+  octx.beginPath();
+  octx.ellipse(0, 0, padRX, padRY, 0, 0, Math.PI * 2);
+  octx.fill();
+  // 비트 글로우 테두리
+  octx.lineWidth = 2.5;
+  octx.strokeStyle = `rgba(201,107,82,${0.25 + 0.55 * beatGlow})`;
+  octx.beginPath();
+  octx.ellipse(0, 0, padRX, padRY, 0, 0, Math.PI * 2);
+  octx.stroke();
+  // 반죽 결 (가로 라인 2개)
+  octx.strokeStyle = 'rgba(51,41,29,0.08)';
+  octx.lineWidth = 1.4;
+  for (const yy of [-0.28, 0.28]) {
+    octx.beginPath();
+    octx.moveTo(-padRX * 0.6, padRY * yy);
+    octx.quadraticCurveTo(0, padRY * (yy + 0.12), padRX * 0.6, padRY * yy);
+    octx.stroke();
+  }
+  octx.restore();
+}
+
+function drawApproachRings(octx, now) {
+  for (const b of beats) {
+    if (b.hit === 'perfect' || b.hit === 'good') continue;
+    const rem = b.time - now;                 // 남은 시간(초)
+    if (rem > APPROACH || rem < -0.05) continue;
+    const p = 1 - rem / APPROACH;              // 0(멀리)→1(방석)
+    const k = 1 + 1.6 * (1 - p);               // 반경 배율
+    const a = Math.min(1, p * 1.6) * (rem < 0 ? Math.max(0, 1 + rem / 0.05) : 1);
+    octx.save();
+    octx.translate(padX, padY);
+    octx.lineWidth = 2 + 1.5 * p;
+    octx.strokeStyle = `rgba(164,74,42,${0.5 * a})`;
+    octx.beginPath();
+    octx.ellipse(0, 0, padRX * k, padRY * k, 0, 0, Math.PI * 2);
+    octx.stroke();
+    octx.restore();
+  }
+}
+
+function drawFlashes(octx, tnow) {
+  for (let i = flashes.length - 1; i >= 0; i--) {
+    const f = flashes[i];
+    const p = (tnow - f.t0) / 340;
+    if (p >= 1) { flashes.splice(i, 1); continue; }
+    const k = 1 + 0.9 * p;
+    const col = f.kind === 'perfect' ? '201,107,82' : '111,99,80';
+    octx.save();
+    octx.translate(padX, padY);
+    octx.lineWidth = 3 * (1 - p);
+    octx.strokeStyle = `rgba(${col},${(1 - p) * 0.9})`;
+    octx.beginPath();
+    octx.ellipse(0, 0, padRX * k, padRY * k, 0, 0, Math.PI * 2);
+    octx.stroke();
+    octx.restore();
+  }
+}
+
+function drawPaw(octx, tnow) {
+  if (!pawAnim) return;
+  const p = (tnow - pawAnim.t0) / 200;
+  if (p >= 1) { pawAnim = null; return; }
+  const s = Math.sin(Math.min(1, p) * Math.PI);   // 0→1→0 누름
+  const side = pawAnim.side;
+  const cx = padX + side * padRX * 0.42;
+  const topY = padY - padRY - padRX * 0.9;        // 발이 시작하는 위쪽
+  const cy = topY + (padY - padRY * 0.2 - topY) * s;  // 방석으로 내려와 누름
+  const pr = padRX * 0.42;
+  octx.save();
+  octx.translate(cx, cy);
+  // 육구(메인 패드)
+  octx.fillStyle = '#efe7d3';
+  octx.strokeStyle = 'rgba(51,41,29,0.28)';
+  octx.lineWidth = 1.6;
+  octx.beginPath();
+  octx.ellipse(0, 0, pr, pr * 1.05, 0, 0, Math.PI * 2);
+  octx.fill(); octx.stroke();
+  // 발가락 콩 3개
+  octx.fillStyle = '#e7dcc4';
+  for (const o of [-0.5, 0, 0.5]) {
+    octx.beginPath();
+    octx.ellipse(o * pr * 0.9, -pr * 0.85, pr * 0.32, pr * 0.4, 0, 0, Math.PI * 2);
+    octx.fill();
+  }
+  // 발가락 라인
+  octx.strokeStyle = 'rgba(51,41,29,0.18)';
+  octx.lineWidth = 1.2;
+  for (const o of [-0.33, 0.33]) {
+    octx.beginPath();
+    octx.moveTo(o * pr, -pr * 0.1);
+    octx.lineTo(o * pr, pr * 0.5);
+    octx.stroke();
+  }
+  octx.restore();
+}
+
+function drawPops(octx, tnow) {
+  for (let i = pops.length - 1; i >= 0; i--) {
+    const p = pops[i];
+    const age = (tnow - p.t0) / 700;
+    if (age >= 1) { pops.splice(i, 1); continue; }
+    octx.save();
+    octx.globalAlpha = Math.min(1, (1 - age) * 1.8);
+    octx.fillStyle = p.col;
+    octx.font = '600 15px ui-monospace,Menlo,monospace';
+    octx.textAlign = 'center';
+    octx.fillText(p.text, p.x, p.y - age * 26);
+    octx.restore();
+  }
+  octx.textAlign = 'left';
+}
+
+// ── 게임 루프 (stage.onFrame 훅) ────────────────────────────
+stage.onFrame = (t, octx, { center }) => {
+  // 방석 위치·크기 갱신 (발 근처, 폭 ~R*1.6)
+  padRX = center.R * 0.8;
+  padRY = center.R * 0.42;
+  padX = center.x;
+  padY = center.y + center.R * 2.55;
+
+  // 눌림 감쇠
+  blobPulse *= 0.82;
+  if (blobPulse < 0.01) blobPulse = 0;
+
+  if (!playing) { stage.petMeter = 0; return; }
+
+  const now = actx.currentTime;
+
+  // 무입력 미스 판정 + 오래된 비트 정리
+  for (const b of beats) {
+    if (!b.hit && now > b.time + GOOD) {
+      b.hit = 'miss';
+      combo = 0;
+      missCount++;
+      pushPop(L('miss'), '#a44a2a');
+    }
+  }
+  if (beats.length > 24) beats = beats.filter((b) => b.time > now - 2);
+
+  // 콤보에 비례한 골골/눈웃음
+  stage.petMeter = Math.min(1, combo / 16);
+
+  // 비트 글로우(가장 가까운 비트에 반응)
+  let beatGlow = 0;
+  for (const b of beats) {
+    const dt = (now - b.time) / 0.10;
+    const g = Math.exp(-dt * dt);
+    if (g > beatGlow) beatGlow = g;
+  }
+
+  drawApproachRings(octx, now);
+  drawPad(octx, t, beatGlow);
+  drawFlashes(octx, t);
+  drawPaw(octx, t);
+  drawPops(octx, t);
+
+  // 콤보 표시
+  if (combo > 1) {
+    octx.save();
+    octx.textAlign = 'center';
+    octx.fillStyle = 'rgba(51,41,29,0.7)';
+    octx.font = '700 22px ui-monospace,Menlo,monospace';
+    octx.fillText('×' + combo, padX, padY + padRY + 30);
+    octx.restore();
+    octx.textAlign = 'left';
+  }
+};
+</script>
+</body>
+</html>

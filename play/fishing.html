@@ -140,7 +140,7 @@ const L = (k) => (DICT[lang] && DICT[lang][k]) || DICT.en[k] || k;
 document.querySelectorAll('[data-i18n-local]').forEach(el => { el.textContent = L(el.dataset.i18nLocal); });
 
 const $ = (id) => document.getElementById(id);
-const state = store.load();
+let state = store.load();
 if (!state.cat) location.href = '../';   // 입양 전이면 홈으로
 
 let stage;
@@ -286,10 +286,11 @@ function endRound() {
   stage.setExtraOffset(0, 0);
   stage.lookOverride = null;
   const earned = score * 2 + maxCombo;
-  state.jelly += earned;
-  state.stats.fishingCatches = (state.stats.fishingCatches || 0) + score;
-  state.stats.fishingBest = Math.max(state.stats.fishingBest || 0, score);
-  store.save(state);
+  state = store.mutate((s) => {
+    s.jelly += earned;
+    s.stats.fishingCatches = (s.stats.fishingCatches || 0) + score;
+    s.stats.fishingBest = Math.max(s.stats.fishingBest || 0, score);
+  });
   $('finalScore').textContent = score;
   $('earnedN').textContent = earned;
   $('jellyN').textContent = state.jelly;
