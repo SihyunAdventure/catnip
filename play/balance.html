@@ -26,7 +26,7 @@
     font-family:var(--serif);
     background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
   }
-  .wrap{max-width:600px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:0 20px 48px}
+  .wrap{max-width:600px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:0 20px 48px;padding:env(safe-area-inset-top) 20px calc(48px + env(safe-area-inset-bottom))}
 
   .hud-top{
     display:flex;justify-content:space-between;align-items:center;

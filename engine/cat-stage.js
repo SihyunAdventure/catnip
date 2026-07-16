@@ -588,9 +588,14 @@ void main(){ o = vC; }`);
 
   // ── 오디오 (골골) ────────────────────────────────────────
   _initAudio() {
-    if (this.actx) return;
+    if (this.actx) {
+      // iOS WKWebView: 유저 제스처 시점에 suspended 상태로 남아 있을 수 있음
+      if (this.actx.state === 'suspended') this.actx.resume();
+      return;
+    }
     try {
       this.actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (this.actx.state === 'suspended') this.actx.resume();
       const len = this.actx.sampleRate * 2;
       const buf = this.actx.createBuffer(1, len, this.actx.sampleRate);
       const d = buf.getChannelData(0);
@@ -638,6 +643,7 @@ void main(){ o = vC; }`);
     this._onDown = () => this._initAudio();
     ov.addEventListener('pointermove', this._onMove);
     ov.addEventListener('pointerleave', this._onLeave);
+    ov.addEventListener('pointercancel', this._onLeave);   // 터치가 스크롤로 넘어갈 때 파팅 고착 방지
     ov.addEventListener('pointerdown', this._onDown);
   }
 
@@ -688,6 +694,7 @@ void main(){ o = vC; }`);
     removeEventListener('resize', this._onResize);
     this.ovC.removeEventListener('pointermove', this._onMove);
     this.ovC.removeEventListener('pointerleave', this._onLeave);
+    this.ovC.removeEventListener('pointercancel', this._onLeave);
     this.ovC.removeEventListener('pointerdown', this._onDown);
     if (this.actx) this.actx.close();
   }
