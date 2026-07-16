@@ -377,10 +377,10 @@ function finish(champ) {
   setTimeout(() => winnerStage && winnerStage.react('happy'), 400);
 
   // 보상 저장 (입양 여부 무관)
-  const state = store.load();
-  state.jelly += 10;
-  state.stats.worldcupRuns = (state.stats.worldcupRuns || 0) + 1;
-  store.save(state);
+  store.mutate((s) => {
+    s.jelly += 10;
+    s.stats.worldcupRuns = (s.stats.worldcupRuns || 0) + 1;
+  });
 }
 
 function startTournament() {

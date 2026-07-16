@@ -11,4 +11,6 @@
 - [Cutie world cup minigame](https://catnip.fun/play/worldcup) — vote round by round for the cutest cat
 - [Which-cat-are-you quiz](https://catnip.fun/play/quiz) — answer a few questions to find your matching cat
 - [Cat balance game](https://catnip.fun/play/balance) — cat-themed would-you-rather dilemmas
+- [Fishing rod minigame](https://catnip.fun/play/fishing) — dangle a feather and let your cat grab it for jelly
+- [Cat book](https://catnip.fun/cats) — browse every breed you've collected
 - [Source code](https://github.com/SihyunAdventure/catnip)

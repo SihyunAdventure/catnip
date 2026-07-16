@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>fishing rod — catnip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎣</text></svg>">
+<meta name="description" content="Play with a feather wand — dangle it, tease your virtual cat, and let them pounce to earn jelly. catnip 미니게임: 낚싯대 깃털로 고양이와 놀아주세요.">
+<meta property="og:title" content="fishing rod — catnip · 낚싯대">
+<meta property="og:description" content="Dangle the feather wand, tease your cat, let them pounce. 깃털을 흔들어 고양이를 애태우고 덮치게 해주세요.">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --paper:#e8e1ce;
+    --paper-hi:#f3eddc;
+    --ink:#33291d;
+    --ink-soft:#6f6350;
+    --rust:#a44a2a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);
+    background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  }
+  .stage{position:relative;height:100vh;min-height:520px;overflow:hidden}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #ov{touch-action:none}
+  #ov.playing{cursor:none}
+  .overlay{position:absolute;inset:0;pointer-events:none}
+  .overlay .ui{pointer-events:auto}
+
+  .hud-top{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 28px;font-family:var(--mono);font-size:13px;
+  }
+  .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .stat{background:var(--paper-hi);border:1px solid var(--ink);padding:5px 12px;font-weight:600;margin-left:8px}
+
+  .panel{
+    position:absolute;inset:0;display:grid;place-items:center;
+    background:rgba(232,225,206,.75);backdrop-filter:blur(3px);
+  }
+  .panel .card{
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:32px 40px;display:flex;flex-direction:column;gap:16px;align-items:center;
+    font-family:var(--mono);text-align:center;
+  }
+  .panel h2{margin:0;font-family:var(--serif);font-weight:500;font-size:24px}
+  .panel .hint{font-size:11.5px;color:var(--ink-soft);max-width:260px;line-height:1.7}
+  .panel .big{font-size:40px;font-weight:700}
+  .row{display:flex;gap:10px}
+  .btn{
+    appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    padding:10px 18px;cursor:pointer;
+  }
+  .btn.primary{background:var(--ink);color:var(--paper-hi)}
+  #toast{
+    position:absolute;top:72px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper-hi);
+    font-family:var(--mono);font-size:12px;padding:9px 16px;
+    opacity:0;transition:opacity .25s;pointer-events:none;
+  }
+  #toast.show{opacity:1}
+  .fallback{
+    position:absolute;inset:0;display:none;place-items:center;
+    font-family:var(--mono);font-size:13px;color:var(--rust);
+  }
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<section class="stage">
+  <canvas id="tl"></canvas>
+  <canvas id="gl"></canvas>
+  <canvas id="ov"></canvas>
+  <div class="fallback" id="fallback">WebGL2 required.</div>
+  <div class="overlay">
+    <div class="hud-top">
+      <a class="wordmark" href="../">catnip</a>
+      <div>
+        <span class="stat" id="timeBox">60</span>
+        <span class="stat"><span id="scoreN">0</span> 🎣</span>
+        <span class="stat">🐾 <span id="jellyN">0</span></span>
+      </div>
+    </div>
+
+    <div class="panel ui" id="startPanel">
+      <div class="card">
+        <h2 data-i18n-local="title"></h2>
+        <div class="hint" data-i18n-local="hint"></div>
+        <button class="btn primary" id="startBtn" data-i18n-local="start"></button>
+        <a class="btn" href="../" data-i18n-local="home"></a>
+      </div>
+    </div>
+
+    <div class="panel ui hidden" id="endPanel">
+      <div class="card">
+        <h2 data-i18n-local="done"></h2>
+        <div class="big"><span id="finalScore">0</span> <span style="font-size:16px" data-i18n-local="score"></span></div>
+        <div style="font-size:14px"><span data-i18n-local="earned"></span> +<span id="earnedN">0</span> 🐾</div>
+        <div class="row">
+          <button class="btn primary" id="againBtn" data-i18n-local="again"></button>
+          <a class="btn" href="../" data-i18n-local="home"></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+  </div>
+</section>
+
+<script type="module">
+import { CatStage } from '../engine/cat-stage.js';
+import * as store from '../engine/save.js';
+import { lang } from '../engine/i18n.js';
+
+document.documentElement.lang = lang;
+
+// ── 로컬 사전 (engine/i18n.js 수정 금지) ─────────────────────
+const DICT = {
+  en: {
+    title: 'fishing rod',
+    hint: 'wiggle the feather near your cat — tease, then let them pounce!',
+    catch: 'got it!', miss: 'missed…', done: 'time!',
+    score: 'catches', earned: 'earned', again: 'play again', home: 'home', start: 'start',
+  },
+  ko: {
+    title: '낚싯대',
+    hint: '고양이 근처에서 깃털을 흔들어 애태우다가, 덮치게 해주세요!',
+    catch: '잡았다!', miss: '놓쳤다…', done: '끝!',
+    score: '캐치', earned: '획득', again: '다시 하기', home: '집으로', start: '시작',
+  },
+};
+const L = (k) => (DICT[lang] && DICT[lang][k]) || DICT.en[k] || k;
+document.querySelectorAll('[data-i18n-local]').forEach(el => { el.textContent = L(el.dataset.i18nLocal); });
+
+const $ = (id) => document.getElementById(id);
+const state = store.load();
+if (!state.cat) location.href = '../';   // 입양 전이면 홈으로
+
+let stage;
+try {
+  stage = new CatStage({ tl: $('tl'), gl: $('gl'), ov: $('ov'), breeds: [state.cat?.breed ?? 0] });
+} catch (e) {
+  $('fallback').style.display = 'grid';
+  $('fallback').textContent = 'WebGL2 required.';
+  throw e;
+}
+
+const ROUND = 60;
+let playing = false;
+let exc = 0;                 // 흥분 게이지 0..1
+let score = 0, combo = 0, maxCombo = 0, lastCatch = 0;
+let timeLeft = ROUND;
+let timerId = null;
+let pounce = null;           // {t0, dx, dy, judged, tx, ty}
+
+// 커서 위치 (낚싯대 손잡이)
+const dot = { x: -9999, y: -9999 };
+
+// ── 로프 물리 (verlet 체인) ──────────────────────────────────
+const NODES = 9, SEG = 14, GRAV = 0.6, DAMP = 0.96;
+const rope = [];
+let fpx = -9999, fpy = -9999;   // 깃털 끝 마디 이전 프레임 위치 (속도용)
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+function initRope(x, y) {
+  rope.length = 0;
+  for (let i = 0; i < NODES; i++) rope.push({ x, y: y + i * SEG, px: x, py: y + i * SEG });
+  fpx = x; fpy = y + (NODES - 1) * SEG;
+}
+
+function stepRope(hx, hy) {
+  rope[0].x = hx; rope[0].y = hy;
+  for (let i = 1; i < NODES; i++) {
+    const nd = rope[i];
+    const vx = (nd.x - nd.px) * DAMP, vy = (nd.y - nd.py) * DAMP;
+    nd.px = nd.x; nd.py = nd.y;
+    nd.x += vx; nd.y += vy + GRAV;
+  }
+  for (let k = 0; k < 2; k++) {
+    rope[0].x = hx; rope[0].y = hy;
+    for (let i = 1; i < NODES; i++) {
+      const a = rope[i - 1], b = rope[i];
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const d = Math.hypot(dx, dy) || 0.0001;
+      const diff = (d - SEG) / d;
+      if (i === 1) { b.x -= dx * diff; b.y -= dy * diff; }
+      else {
+        a.x += dx * diff * 0.5; a.y += dy * diff * 0.5;
+        b.x -= dx * diff * 0.5; b.y -= dy * diff * 0.5;
+      }
+    }
+  }
+}
+
+function ropeImpulse() {   // 잡아채는 반동
+  for (let i = 1; i < NODES; i++) { rope[i].px += rnd(-9, 9); rope[i].py += rnd(-9, 9); }
+}
+
+function drawRope(octx) {
+  octx.strokeStyle = 'rgba(51,41,29,0.65)';
+  octx.lineWidth = 2;
+  octx.lineJoin = 'round';
+  octx.lineCap = 'round';
+  octx.beginPath();
+  octx.moveTo(rope[0].x, rope[0].y);
+  for (let i = 1; i < NODES - 1; i++)
+    octx.quadraticCurveTo(rope[i].x, rope[i].y, (rope[i].x + rope[i + 1].x) / 2, (rope[i].y + rope[i + 1].y) / 2);
+  octx.lineTo(rope[NODES - 1].x, rope[NODES - 1].y);
+  octx.stroke();
+}
+
+function drawFeather(octx, tip, prev) {
+  const ang = Math.atan2(tip.y - prev.y, tip.x - prev.x);
+  octx.save();
+  octx.translate(tip.x, tip.y);
+  octx.rotate(ang);
+  // 방울 (매듭)
+  octx.fillStyle = '#c96b52';
+  octx.beginPath(); octx.arc(0, 0, 3.5, 0, Math.PI * 2); octx.fill();
+  // 깃털 타원 4장 부채꼴로 겹침 (rust·cream 교대)
+  const cols = ['#a44a2a', '#f3eddc', '#a44a2a', '#f3eddc'];
+  const fan = [-0.34, -0.12, 0.12, 0.34];
+  for (let i = 0; i < 4; i++) {
+    octx.save();
+    octx.rotate(fan[i]);
+    octx.globalAlpha = 0.9;
+    octx.fillStyle = cols[i];
+    octx.beginPath();
+    octx.ellipse(19, 0, 17, 5.5, 0, 0, Math.PI * 2);
+    octx.fill();
+    // 깃대
+    octx.globalAlpha = 0.5;
+    octx.strokeStyle = '#7a3a20';
+    octx.lineWidth = 1;
+    octx.beginPath(); octx.moveTo(2, 0); octx.lineTo(35, 0); octx.stroke();
+    octx.restore();
+  }
+  octx.restore();
+}
+
+function toast(msg, ms = 1200) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+$('ov').addEventListener('pointermove', (e) => {
+  const r = $('ov').getBoundingClientRect();
+  dot.x = e.clientX - r.left;
+  dot.y = e.clientY - r.top;
+});
+
+$('jellyN').textContent = state.jelly;
+
+function startRound() {
+  score = 0; combo = 0; maxCombo = 0; exc = 0; timeLeft = ROUND; pounce = null;
+  $('scoreN').textContent = '0';
+  $('timeBox').textContent = ROUND;
+  $('startPanel').classList.add('hidden');
+  $('endPanel').classList.add('hidden');
+  $('ov').classList.add('playing');
+  const sx = dot.x > -100 ? dot.x : innerWidth / 2;
+  const sy = dot.y > -100 ? dot.y : innerHeight * 0.2;
+  initRope(sx, sy);
+  playing = true;
+  timerId = setInterval(() => {
+    timeLeft--;
+    $('timeBox').textContent = timeLeft;
+    if (timeLeft <= 0) endRound();
+  }, 1000);
+}
+
+function endRound() {
+  playing = false;
+  clearInterval(timerId);
+  $('ov').classList.remove('playing');
+  stage.setExtraOffset(0, 0);
+  stage.lookOverride = null;
+  const earned = score * 2 + maxCombo;
+  state.jelly += earned;
+  state.stats.fishingCatches = (state.stats.fishingCatches || 0) + score;
+  state.stats.fishingBest = Math.max(state.stats.fishingBest || 0, score);
+  store.save(state);
+  $('finalScore').textContent = score;
+  $('earnedN').textContent = earned;
+  $('jellyN').textContent = state.jelly;
+  $('endPanel').classList.remove('hidden');
+}
+
+$('startBtn').onclick = startRound;
+$('againBtn').onclick = startRound;
+
+// ── 게임 루프 (stage.onFrame 훅) ────────────────────────────
+stage.onFrame = (t, octx, { W, H, center }) => {
+  if (!playing) return;
+  stage.petMeter = 0;
+
+  // 손잡이 위치 (커서). 첫 이동 전이면 초기값.
+  const hx = dot.x > -100 ? dot.x : W / 2;
+  const hy = dot.y > -100 ? dot.y : H * 0.2;
+  if (!rope.length) initRope(hx, hy);
+  stepRope(hx, hy);
+
+  const tip = rope[NODES - 1], prev = rope[NODES - 2];
+  const featherSpeed = Math.hypot(tip.x - fpx, tip.y - fpy);
+  fpx = tip.x; fpy = tip.y;
+
+  // 시선이 깃털 끝을 쫓음
+  stage.lookOverride = { x: tip.x, y: tip.y };
+
+  // 상반신 기준점까지 거리
+  const dc = Math.hypot(tip.x - center.x, tip.y - (center.y + center.R));
+
+  // 흥분: 상반신 근처에서 속도 있게 움직일 때 상승
+  if (!pounce && dc < center.R * 2.5) exc = Math.min(1, exc + featherSpeed * 0.0013);
+  exc *= 0.996;
+  if (exc > 0.65) stage.excite(exc * 0.25);
+
+  // 덮치기 발동
+  if (!pounce && exc >= 0.97 && dc < center.R * 2.2) {
+    const dx = Math.max(-center.R * 1.3, Math.min(center.R * 1.3, tip.x - center.x));
+    const dy = Math.max(-center.R * 0.9, Math.min(center.R * 0.5, tip.y - (center.y + center.R * 1.2)));
+    pounce = { t0: t, dx, dy, tx: tip.x, ty: tip.y, judged: false };
+    exc = 0;
+  }
+
+  // 덮치기 애니메이션 + 판정
+  if (pounce) {
+    const p = (t - pounce.t0) / 480;
+    if (p >= 1) {
+      stage.setExtraOffset(0, 0);
+      pounce = null;
+    } else {
+      const s = Math.sin(Math.min(p, 1) * Math.PI);
+      stage.setExtraOffset(pounce.dx * s, pounce.dy * s);
+      if (!pounce.judged && p >= 0.45) {
+        pounce.judged = true;
+        const hit = Math.hypot(tip.x - pounce.tx, tip.y - pounce.ty) < center.R * 0.9;
+        if (hit) {
+          combo = (t - lastCatch < 7000) ? combo + 1 : 1;
+          lastCatch = t;
+          maxCombo = Math.max(maxCombo, combo);
+          score++;
+          $('scoreN').textContent = score;
+          stage.react('happy');
+          ropeImpulse();
+          toast(`${L('catch')} ${combo > 1 ? '×' + combo : ''}`);
+        } else {
+          combo = 0;
+          stage.splat(center.x, center.y + center.R, (Math.random() - 0.5) * 20, 8);
+          toast(L('miss'));
+        }
+      }
+    }
+  }
+
+  // 로프 + 깃털 (커서 숨김 상태)
+  drawRope(octx);
+  drawFeather(octx, tip, prev);
+
+  // 흥분 게이지
+  const W2 = octx.canvas.clientWidth || innerWidth;
+  octx.fillStyle = 'rgba(51,41,29,.15)';
+  octx.fillRect(W2 / 2 - 90, 64, 180, 6);
+  octx.fillStyle = exc >= 1 ? '#c96b52' : '#a44a2a';
+  octx.fillRect(W2 / 2 - 90, 64, 180 * Math.min(1, exc), 6);
+};
+</script>
+</body>
+</html>

@@ -120,7 +120,7 @@ document.documentElement.lang = lang;
 apply();
 
 const $ = (id) => document.getElementById(id);
-const state = store.load();
+let state = store.load();
 if (!state.cat) location.href = '../';   // 입양 전이면 홈으로
 
 let stage;
@@ -179,10 +179,11 @@ function endRound() {
   stage.setExtraOffset(0, 0);
   stage.lookOverride = null;
   const earned = score * 2 + maxCombo;
-  state.jelly += earned;
-  state.stats.laserCatches += score;
-  state.stats.laserBest = Math.max(state.stats.laserBest, score);
-  store.save(state);
+  state = store.mutate((s) => {
+    s.jelly += earned;
+    s.stats.laserCatches += score;
+    s.stats.laserBest = Math.max(s.stats.laserBest, score);
+  });
   $('finalScore').textContent = score;
   $('earnedN').textContent = earned;
   $('jellyN').textContent = state.jelly;

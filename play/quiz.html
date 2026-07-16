@@ -171,7 +171,7 @@ import { t, lang } from '../engine/i18n.js';
 
 document.documentElement.lang = lang;
 const $ = (id) => document.getElementById(id);
-const state = store.load();
+let state = store.load();
 
 // ── 페이지 로컬 사전 ────────────────────────────────────────
 const L = {
@@ -470,9 +470,10 @@ function showResult() {
 
   if (!rewarded) {
     rewarded = true;
-    state.jelly += 5;
-    state.stats.quizDone = (state.stats.quizDone || 0) + 1;
-    store.save(state);
+    state = store.mutate((s) => {
+      s.jelly += 5;
+      s.stats.quizDone = (s.stats.quizDone || 0) + 1;
+    });
     $('jellyN').textContent = state.jelly;
     toast(tt('reward'));
   }

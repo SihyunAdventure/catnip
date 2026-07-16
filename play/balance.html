@@ -273,7 +273,7 @@ const BKEY = 'catnip.balance.v1';
 function loadDist() { try { return JSON.parse(localStorage.getItem(BKEY)) || {}; } catch { return {}; } }
 function saveDist(d) { try { localStorage.setItem(BKEY, JSON.stringify(d)); } catch { /* private mode 등 */ } }
 
-const state = store.load();
+let state = store.load();
 $('jellyN').textContent = state.jelly;
 
 let idx = 0;
@@ -437,9 +437,10 @@ function showResult() {
 
   // 보상: 완주 시 젤리 +5, balanceDone 카운트
   const EARN = 5;
-  state.jelly += EARN;
-  state.stats.balanceDone = (state.stats.balanceDone || 0) + 1;
-  store.save(state);
+  state = store.mutate((s) => {
+    s.jelly += EARN;
+    s.stats.balanceDone = (s.stats.balanceDone || 0) + 1;
+  });
   $('jellyN').textContent = state.jelly;
   $('earnedLine').innerHTML = tt('earned', { n: EARN });
 

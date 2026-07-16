@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>cat book — catnip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+<meta name="description" content="The catnip cat book — meet every breed you can adopt: the cheese tabby, mackerel tabby, calico, and tuxedo. catnip 고양이 도감 — 치즈·고등어·삼색이·턱시도, 입양할 수 있는 모든 품종을 만나보세요.">
+<meta property="og:title" content="cat book — catnip">
+<meta property="og:description" content="Meet every cat you can adopt in catnip. catnip에서 입양할 수 있는 모든 고양이 도감.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{
+    --paper:#e8e1ce;
+    --paper-hi:#f3eddc;
+    --ink:#33291d;
+    --ink-soft:#6f6350;
+    --rust:#a44a2a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);
+    background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  }
+
+  .hud-top{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 28px;font-family:var(--mono);font-size:13px;letter-spacing:.06em;
+    max-width:1040px;margin:0 auto;box-sizing:border-box;width:100%;
+  }
+  .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .hud-top .home{
+    border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    text-decoration:none;padding:5px 12px;font-size:11.5px;
+  }
+  .hud-top .home:hover{border-color:var(--rust);color:var(--rust)}
+
+  .book{max-width:1040px;margin:0 auto;padding:8px 24px 88px;box-sizing:border-box}
+
+  .book-head{text-align:center;padding:26px 0 30px}
+  .book-head h1{
+    font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);
+    margin:0;letter-spacing:.01em;
+  }
+  .book-head .sub{
+    font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink-soft);
+    margin-top:10px;
+  }
+  .book-head .count{
+    display:inline-block;margin-top:14px;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--ink);
+    background:var(--paper-hi);border:1px solid var(--ink);padding:6px 14px;
+  }
+  .book-head .lede{
+    max-width:56ch;margin:20px auto 0;font-size:14px;line-height:1.75;color:var(--ink-soft);
+  }
+  .book-head .lede .ko{display:block;margin-top:8px}
+
+  .grid{
+    display:grid;gap:16px;
+    grid-template-columns:repeat(2,1fr);
+  }
+  @media (min-width:620px){ .grid{grid-template-columns:repeat(3,1fr)} }
+  @media (min-width:900px){ .grid{grid-template-columns:repeat(4,1fr)} }
+
+  .card{
+    border:1px solid var(--ink);background:var(--paper-hi);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+
+  .breed-card .thumb-wrap{
+    position:relative;aspect-ratio:5/6;
+    background:
+      radial-gradient(120% 80% at 50% 18%, rgba(255,255,255,.28), rgba(255,255,255,0) 60%),
+      var(--paper);
+    border-bottom:1px solid var(--ink);overflow:hidden;
+  }
+  .breed-card .thumb{
+    position:absolute;inset:0;width:100%;height:100%;display:block;
+    opacity:0;transition:opacity .5s ease;
+  }
+  .breed-card.loaded .thumb{opacity:1}
+  .breed-card .ph{
+    position:absolute;inset:0;display:grid;place-items:center;
+    font-size:34px;opacity:.28;transition:opacity .4s;
+  }
+  .breed-card.loaded .ph{opacity:0}
+
+  .binfo{padding:14px 15px 16px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .bname{display:flex;flex-direction:column;gap:2px}
+  .bname .en{font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.15}
+  .bname .ko{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-soft)}
+  .bpers{font-size:12.5px;line-height:1.55;color:var(--ink);margin-top:1px}
+  .badge{
+    margin-top:auto;align-self:flex-start;
+    font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+    background:var(--rust);color:var(--paper-hi);padding:4px 9px;
+  }
+
+  .soon-card{
+    align-items:center;justify-content:center;text-align:center;
+    padding:0;color:var(--ink-soft);
+  }
+  .soon-card .thumb-wrap{
+    position:relative;aspect-ratio:5/6;width:100%;
+    display:grid;place-items:center;
+    background:repeating-linear-gradient(135deg,rgba(51,41,29,.05) 0 8px,rgba(51,41,29,0) 8px 16px),var(--paper);
+    border-bottom:1px solid rgba(51,41,29,.35);
+  }
+  .soon-card .q{font-family:var(--serif);font-size:56px;color:rgba(51,41,29,.28);line-height:1}
+  .soon-card .binfo{align-items:center;gap:6px}
+  .soon-card .qname{font-family:var(--serif);font-size:18px;color:rgba(51,41,29,.45)}
+  .soon-card .hint{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-soft)}
+
+  .cta-row{display:flex;justify-content:center;margin-top:36px}
+  .cta{
+    appearance:none;border:1px solid var(--ink);background:var(--ink);color:var(--paper-hi);
+    font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;
+    padding:13px 26px;cursor:pointer;text-decoration:none;
+  }
+  .cta:hover{background:var(--rust);border-color:var(--rust)}
+  .cta:focus-visible{outline:2px solid var(--rust);outline-offset:2px}
+
+  .seo{max-width:64ch;margin:64px auto 0;padding:0 4px}
+  .seo h2{
+    font-family:var(--serif);font-weight:500;font-size:22px;color:var(--ink);
+    text-align:center;margin:0 0 8px;
+  }
+  .seo .divider{
+    width:44px;height:2px;background:var(--rust);margin:0 auto 30px;
+  }
+  .seo article{margin:0 0 30px}
+  .seo article h3{
+    font-family:var(--serif);font-weight:500;font-size:18px;color:var(--ink);
+    margin:0 0 6px;
+  }
+  .seo article h3 .ko{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-soft);
+    margin-left:8px;
+  }
+  .seo p{font-size:14px;line-height:1.8;color:var(--ink-soft);margin:0 0 10px}
+  .seo p.ko{color:var(--ink-soft)}
+
+  .foot{
+    text-align:center;font-family:var(--mono);font-size:11px;color:var(--ink-soft);
+    padding:52px 0 0;
+  }
+  .foot a{color:var(--rust)}
+
+  .snaphost{
+    position:fixed;left:-99999px;top:0;width:600px;height:760px;
+    opacity:0;pointer-events:none;
+  }
+  .snaphost canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<div class="hud-top">
+  <a class="wordmark" href="../">catnip</a>
+  <a class="home" href="../" id="homeLink">← home</a>
+</div>
+
+<main class="book">
+  <header class="book-head">
+    <h1 id="pageTitle">cat book</h1>
+    <div class="sub" id="pageSub">a field guide to every catnip cat</div>
+    <div class="count" id="countBox">0 / 4 collected · 4 coming soon</div>
+    <p class="lede">
+      <span class="en" id="ledeEn"></span>
+      <span class="ko" id="ledeKo"></span>
+    </p>
+  </header>
+
+  <section class="grid" id="grid" aria-label="cat breeds"></section>
+
+  <div class="cta-row">
+    <a class="cta" href="../" id="ctaBtn">go adopt a cat →</a>
+  </div>
+
+  <!-- SEO: 크롤러블 품종 상세 (정적) -->
+  <section class="seo">
+    <h2 id="seoTitle">about the breeds</h2>
+    <div class="divider"></div>
+
+    <article>
+      <h3>Cheese Tabby <span class="ko">치즈</span></h3>
+      <p>The cheese tabby — better known as the orange or ginger tabby — wears a warm marmalade coat striped in deeper amber, and roughly four in five are male. In catnip the cheese cat is the sunshine of the room: sociable, a touch greedy, and endlessly affectionate. Pet one and it will start purring before your hand even lands.</p>
+      <p class="ko">치즈 태비는 오렌지 태비라고도 불리며, 짙은 호박빛 줄무늬가 어우러진 따뜻한 마멀레이드 털옷을 입어요. 약 80%가 수컷일 만큼 성별이 치우쳐 있고, 실제로도 사람을 좋아하는 넉살 좋은 성격으로 알려져 있죠. catnip 속 치즈는 어느 방에서든 햇살 같은 존재 — 사교적이고, 살짝 먹보고, 애교가 넘쳐요.</p>
+    </article>
+
+    <article>
+      <h3>Mackerel Tabby <span class="ko">고등어</span></h3>
+      <p>The mackerel tabby takes its name from the fine, fish-bone stripes running down its silver-grey sides, capped by the classic “M” on the forehead — the most common tabby pattern of all. Cool and watchful, the mackerel cat sizes up a room before it commits to it. It keeps its circle small, but the ones inside it are kept for life.</p>
+      <p class="ko">고등어는 은회색 몸통을 따라 흐르는 생선 가시 같은 촘촘한 줄무늬에서 이름을 얻었고, 이마엔 태비 특유의 “M” 자가 새겨져 있어요. 가장 흔한 줄무늬 패턴이면서도 시크하고 신중한 인상이 매력이죠. catnip 속 고등어는 방 안을 먼저 살핀 뒤에야 마음을 여는 관찰자 — 곁에 두는 사람은 적지만 한번 들이면 평생 곁에 둡니다.</p>
+    </article>
+
+    <article>
+      <h3>Calico <span class="ko">삼색이</span></h3>
+      <p>The calico wears three colours at once — white, black, and orange in bold, map-like patches — and nearly every calico is female, a quirk of feline genetics. Long thought to bring good luck, the tricolor cat is as unpredictable as its coat. In catnip the calico is the free spirit of the litter: expressive, spontaneous, and never boring.</p>
+      <p class="ko">삼색이는 흰색·검정·주황이 지도처럼 뚜렷한 얼룩으로 한데 어우러진 털옷을 입고, 유전적 특성상 거의 모두가 암컷이에요. 예로부터 복을 부르는 고양이로 여겨졌고, 성격도 그 화려한 무늬만큼 종잡을 수 없죠. catnip 속 삼색이는 자유로운 영혼 — 표현이 풍부하고 즉흥적이며, 결코 지루할 틈이 없어요.</p>
+    </article>
+
+    <article>
+      <h3>Tuxedo <span class="ko">턱시도</span></h3>
+      <p>The tuxedo cat is a black-and-white bicolor — glossy black over a crisp white chest, belly, and paws, as if dressed for a gala. Tuxedos have a reputation for being sociable, clever, and just a little theatrical. In catnip the tuxedo is the dapper gentleman: elegant on the surface, and a playful trickster the moment the lights go down.</p>
+      <p class="ko">턱시도는 반짝이는 검정 털 위로 새하얀 가슴·배·발이 턱시도처럼 떨어지는 흑백 바이컬러 고양이예요. 사교적이고 영리하며 조금은 극적인 성격으로 알려져 있죠. catnip 속 턱시도는 단정한 신사 — 겉은 우아하지만, 불이 꺼지면 누구보다 장난기 넘치는 개구쟁이가 됩니다.</p>
+    </article>
+  </section>
+
+  <div class="foot">
+    <a href="../">catnip.fun</a> · <a href="https://github.com/SihyunAdventure/catnip">GitHub</a>
+  </div>
+</main>
+
+<!-- 오프스크린 스냅샷 스테이지 (한 번에 하나씩) -->
+<div class="snaphost" aria-hidden="true">
+  <canvas id="snapTl"></canvas>
+  <canvas id="snapGl"></canvas>
+  <canvas id="snapOv"></canvas>
+</div>
+
+<script type="module">
+import { CatStage } from '../engine/cat-stage.js';
+import * as store from '../engine/save.js';
+import { t, lang } from '../engine/i18n.js';
+
+document.documentElement.lang = lang;
+const $ = (id) => document.getElementById(id);
+const state = store.load();
+
+// ── 페이지 로컬 사전 ────────────────────────────────────────
+const L = {
+  en: {
+    title: 'cat book',
+    sub: 'a field guide to every catnip cat',
+    count: (n) => `${n} / 4 collected · 4 coming soon`,
+    ledeEn: 'Every catnip cat is drawn entirely in code — thousands of fur strands rendered live in your browser. Here are the four you can adopt today, with four more on the way.',
+    ledeKo: null,
+    seoTitle: 'about the breeds',
+    cta: 'go adopt a cat →',
+    home: '← home',
+    living: (name) => `living with · ${name}`,
+    soon: 'coming soon…',
+  },
+  ko: {
+    title: '고양이 도감',
+    sub: 'catnip 고양이 도감',
+    count: (n) => `${n} / 4 수집 · 4마리 준비 중`,
+    ledeEn: null,
+    ledeKo: 'catnip의 모든 고양이는 이미지 없이 코드만으로 그려집니다 — 수천 가닥의 털이 브라우저에서 실시간으로 렌더링돼요. 지금 입양할 수 있는 네 마리를 소개하고, 네 마리가 더 오고 있어요.',
+    seoTitle: '품종 이야기',
+    cta: '입양하러 가기 →',
+    home: '← 집으로',
+    living: (name) => `함께 사는 중 · ${name}`,
+    soon: '머지않아…',
+  },
+};
+const tt = (k) => L[lang][k] ?? L.en[k];
+
+// 품종 성격 카피 (퀴즈 아키타입 재활용, 카드용 2줄)
+const PERS = {
+  en: [
+    'A sociable sunbeam — friends with anyone in seconds, a little greedy, always near.',
+    'The cool observer — it watches before it leaps, and keeps a small, loyal circle.',
+    'A free spirit — no two days the same; its mood is the only weather report.',
+    'The dapper gentleman — impeccable on the surface, a playful trickster underneath.',
+  ],
+  ko: [
+    '사교적인 햇살 — 누구와도 몇 초 만에 친구, 살짝 먹보에 애교가 넘쳐요.',
+    '시크한 관찰자 — 뛰기 전에 먼저 지켜보고, 곁을 내주는 사람은 적지만 깊어요.',
+    '자유로운 영혼 — 하루도 같은 날이 없어요. 기분이 곧 오늘의 날씨.',
+    '단정한 신사 — 겉은 빈틈없이 우아하지만, 놀 땐 누구보다 장난꾸러기.',
+  ],
+};
+
+// ── 정적 라벨 세팅 ──────────────────────────────────────────
+const collected = state.cat ? 1 : 0;
+$('pageTitle').textContent = tt('title');
+$('pageSub').textContent = tt('sub');
+$('countBox').textContent = tt('count')(collected);
+$('seoTitle').textContent = tt('seoTitle');
+$('ctaBtn').textContent = tt('cta');
+$('homeLink').textContent = tt('home');
+document.querySelector('.book-head .lede .en').textContent = L.en.ledeEn && lang === 'en' ? L.en.ledeEn : '';
+document.querySelector('.book-head .lede .ko').textContent = lang === 'ko' ? L.ko.ledeKo : '';
+if (lang === 'en') { $('ledeKo').classList.add('hidden'); }
+if (lang === 'ko') { $('ledeEn').classList.add('hidden'); }
+
+// ── 카드 빌드 ───────────────────────────────────────────────
+const PLACE_EMOJI = ['🧡', '🐟', '🍀', '🎩'];
+const grid = $('grid');
+const cards = [];
+for (let i = 0; i < 4; i++) {
+  const card = document.createElement('article');
+  card.className = 'card breed-card';
+  const adopted = state.cat && state.cat.breed === i;
+  card.innerHTML =
+    `<div class="thumb-wrap"><span class="ph">${PLACE_EMOJI[i]}</span><canvas class="thumb"></canvas></div>` +
+    `<div class="binfo">` +
+      `<div class="bname"><span class="en"></span><span class="ko"></span></div>` +
+      `<div class="bpers"></div>` +
+      (adopted ? `<span class="badge"></span>` : '') +
+    `</div>`;
+  card.querySelector('.bname .en').textContent = t(`breed.${i}`);
+  // en 사전은 영어 품종명, ko는 한글 품종명을 함께 보여줌
+  card.querySelector('.bname .ko').textContent =
+    lang === 'ko' ? enName(i) : koName(i);
+  card.querySelector('.bpers').textContent = PERS[lang][i];
+  if (adopted) card.querySelector('.badge').textContent = tt('living')(state.cat.name);
+  grid.appendChild(card);
+  cards.push(card);
+}
+
+// coming soon 카드 4장
+const SOON = 4;
+for (let i = 0; i < SOON; i++) {
+  const card = document.createElement('div');
+  card.className = 'card soon-card';
+  card.setAttribute('aria-label', 'coming soon');
+  card.innerHTML =
+    `<div class="thumb-wrap"><span class="q">?</span></div>` +
+    `<div class="binfo"><span class="qname">???</span><span class="hint"></span></div>`;
+  card.querySelector('.hint').textContent = tt('soon');
+  grid.appendChild(card);
+}
+
+function enName(i) {
+  const names = ['Cheese Tabby', 'Mackerel Tabby', 'Calico', 'Tuxedo'];
+  return names[i];
+}
+function koName(i) {
+  const names = ['치즈', '고등어', '삼색이', '턱시도'];
+  return names[i];
+}
+
+// ── 순차 스냅샷 렌더링 ──────────────────────────────────────
+const host = { tl: $('snapTl'), gl: $('snapGl'), ov: $('snapOv') };
+const frames = (n) => new Promise((res) => {
+  let k = n;
+  const step = () => (--k <= 0 ? res() : requestAnimationFrame(step));
+  requestAnimationFrame(step);
+});
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+function drawCatCrop(destCanvas, snap, stage) {
+  const dpr = stage.dpr, R = stage.R, W = stage.W, H = stage.H, CY = stage.CY;
+  const dw = destCanvas.width, dh = destCanvas.height;
+  // 카드 비율에 맞춰 고양이 중심으로 크롭 (client px → snapshot px)
+  const ch = Math.min(H, R * 3.95);
+  const cw = ch * (dw / dh);
+  const ccx = W * 0.5;
+  const ccy = Math.max(ch / 2, Math.min(H - ch / 2, CY + R * 0.55));
+  const sx = (ccx - cw / 2) * dpr, sy = (ccy - ch / 2) * dpr;
+  const x = destCanvas.getContext('2d');
+  x.clearRect(0, 0, dw, dh);
+  x.drawImage(snap, sx, sy, cw * dpr, ch * dpr, 0, 0, dw, dh);
+}
+
+async function renderThumbs() {
+  for (let i = 0; i < 4; i++) {
+    let stage;
+    try {
+      stage = new CatStage({ ...host, breeds: [i] });
+    } catch (e) {
+      // WebGL2 미지원 → 플레이스홀더 유지, 중단
+      return;
+    }
+    // 물리·오버레이가 자리 잡을 시간
+    await frames(2);
+    await delay(260);
+    const snap = stage.snapshot();
+    const thumb = cards[i].querySelector('.thumb');
+    thumb.width = 520; thumb.height = 624;   // 5:6, 레티나
+    drawCatCrop(thumb, snap, stage);
+    cards[i].classList.add('loaded');
+    stage.destroy();
+    await frames(1);
+  }
+}
+
+renderThumbs();
+</script>
+</body>
+</html>

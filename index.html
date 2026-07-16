@@ -142,6 +142,7 @@
   .gamecard .gtext{display:flex;flex-direction:column;gap:3px}
   .gamecard .gname{font-size:13px;font-weight:600}
   .gamecard .gdesc{font-size:10.5px;color:var(--ink-soft);line-height:1.4}
+  .gamecard.catbook{width:284px;margin-top:2px;background:var(--paper-hi)}
 </style>
 </head>
 <body>
@@ -191,6 +192,10 @@
       <div class="card">
         <h2 id="gameTitle"></h2>
         <div class="gamelist" id="gameList"></div>
+        <a class="gamecard catbook" id="catbookLink" href="cats/">
+          <span class="emoji">📖</span>
+          <span class="gtext"><span class="gname" id="catbookName"></span><span class="gdesc" id="catbookDesc"></span></span>
+        </a>
         <button class="btn" id="gameClose"></button>
       </div>
     </div>
@@ -214,17 +219,21 @@
   <p>catnip is a free browser game where you adopt, pet, and raise a virtual cat.
   Every cat is drawn entirely in code — about 25,000 fur strands rendered in a single WebGL
   draw call, with spring-field physics that makes the fur part and ripple under your cursor.
-  Pet your cat until it purrs and feed it to grow your bond. There are four minigames to play:
+  Pet your cat until it purrs and feed it to grow your bond. There are five minigames to play:
   chase the <a href="/play/laser">laser pointer</a> to earn jelly 🐾, crown a winner in the
   <a href="/play/worldcup">cutie world cup</a>, meet your match in the
-  <a href="/play/quiz">which-cat-are-you quiz</a>, or settle feline dilemmas in
-  <a href="/play/balance">cat balance</a>. No install, no login, free.</p>
+  <a href="/play/quiz">which-cat-are-you quiz</a>, settle feline dilemmas in
+  <a href="/play/balance">cat balance</a>, or dangle a <a href="/play/fishing">fishing rod</a>
+  and let them grab it. Browse every breed you've met so far in the <a href="/cats">cat book</a>.
+  No install, no login, free.</p>
   <p>catnip은 브라우저에서 바로 하는 무료 고양이 게임입니다. 고양이를 입양해 이름을 지어주고,
-  쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓여요. 미니게임도 네 가지 즐길 수 있어요 —
+  쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓여요. 미니게임도 다섯 가지 즐길 수 있어요 —
   <a href="/play/laser">레이저 포인터</a>로 놀아 젤리 🐾를 모으고,
   <a href="/play/worldcup">귀요미 월드컵</a>에서 최고의 고양이를 뽑고,
   <a href="/play/quiz">닮은 고양이 퀴즈</a>로 나와 닮은 고양이를 찾고,
-  <a href="/play/balance">냥 밸런스</a>로 고양이 밸런스 게임을 즐겨보세요.
+  <a href="/play/balance">냥 밸런스</a>로 고양이 밸런스 게임을 즐기고,
+  <a href="/play/fishing">낚싯대</a>를 흔들어 고양이가 낚아채게 해주세요.
+  그동안 만난 품종은 <a href="/cats">도감</a>에서 모아볼 수 있어요.
   모든 고양이는 이미지 없이 코드만으로 그려집니다 — WebGL 인스턴싱으로 렌더링되는 25,000가닥의 털.
   설치도 로그인도 없습니다.</p>
   <p><a href="https://github.com/SihyunAdventure/catnip">GitHub</a></p>
@@ -280,10 +289,13 @@ const GAMES = [
   { href: 'play/balance.html', emoji: '⚖️',
     en: { name: 'Cat Balance', desc: 'Would you rather? Cat edition.' },
     ko: { name: '냥 밸런스', desc: '고양이 밸런스 게임, 당신의 선택은?' } },
+  { href: 'play/fishing.html', emoji: '🎣',
+    en: { name: 'Fishing Rod', desc: 'Dangle the feather, let them grab it.' },
+    ko: { name: '낚싯대', desc: '깃털을 흔들다 낚아채게 해주세요.' } },
 ];
 const GAME_UI = {
-  en: { title: 'pick a game', close: 'close' },
-  ko: { title: '게임을 골라주세요', close: '닫기' },
+  en: { title: 'pick a game', close: 'close', catbookName: 'Cat Book', catbookDesc: 'Browse every breed you can collect.' },
+  ko: { title: '게임을 골라주세요', close: '닫기', catbookName: '도감', catbookDesc: '모을 수 있는 모든 품종을 구경해요.' },
 };
 let gameMenuReady = false;
 function buildGameMenu() {
@@ -291,6 +303,8 @@ function buildGameMenu() {
   const L = lang === 'ko' ? 'ko' : 'en';
   $('gameTitle').textContent = GAME_UI[L].title;
   $('gameClose').textContent = GAME_UI[L].close;
+  $('catbookName').textContent = GAME_UI[L].catbookName;
+  $('catbookDesc').textContent = GAME_UI[L].catbookDesc;
   const list = $('gameList');
   for (const g of GAMES) {
     const a = document.createElement('a');
@@ -361,9 +375,10 @@ function enterAdoption(initialIndex = 0) {
   $('nameForm').onsubmit = (e) => {
     e.preventDefault();
     const name = $('nameInput').value.trim() || t('adopt.namePlaceholder');
-    state.cat = { breed: stage.index, name, adoptedAt: new Date().toISOString() };
-    state.jelly += 10;   // 입양 축하 젤리
-    store.save(state);
+    state = store.mutate((s) => {
+      s.cat = { breed: stage.index, name, adoptedAt: new Date().toISOString() };
+      s.jelly += 10;   // 입양 축하 젤리
+    });
     removeEventListener('keydown', onKey);
     $('nameUI').classList.add('hidden');
     $('adoptUI').classList.add('hidden');
@@ -382,17 +397,19 @@ function enterHub(justAdopted = false) {
   if (justAdopted) {
     setTimeout(() => { stage.react('happy'); toast(`${t('adopt.confirm')}, ${state.cat.name} ♥`); }, 600);
   } else {
-    const r = store.checkStreak(state);
+    const r = store.checkStreak();
+    state = r.state;
     if (r.granted) setTimeout(() => toast(t('streak.toast', { n: r.amount, d: r.count })), 800);
     updateHUD();
   }
 
   $('feedBtn').onclick = () => {
     if (state.jelly < FEED_COST) { toast(t('hub.noJelly')); return; }
-    state.jelly -= FEED_COST;
-    state.love += FEED_LOVE;
-    state.stats.fed++;
-    store.save(state);
+    state = store.mutate((s) => {
+      s.jelly -= FEED_COST;
+      s.love += FEED_LOVE;
+      s.stats.fed++;
+    });
     stage.react('happy');
     toast(t('feed.toast', { n: FEED_LOVE }));
     updateHUD();

@@ -24,23 +24,50 @@ export function save(s) {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* private mode 등 */ }
 }
 
+// 저장 시점에 fresh 로드 후 변경을 적용해 stale 덮어쓰기를 방지
+export function mutate(fn) {
+  const s = load();
+  fn(s);
+  save(s);
+  return s;
+}
+
+export function addJelly(n) {
+  return mutate((s) => { s.jelly += n; });
+}
+
+export function addLove(n) {
+  return mutate((s) => { s.love += n; });
+}
+
+export function bumpStat(key, n = 1) {
+  return mutate((s) => { s.stats[key] = (s.stats[key] || 0) + n; });
+}
+
+export function setStatMax(key, v) {
+  return mutate((s) => { s.stats[key] = Math.max(s.stats[key] || 0, v); });
+}
+
 export function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// 오늘 첫 방문이면 streak 갱신 + 보너스 젤리 지급
-export function checkStreak(s) {
+// 오늘 첫 방문이면 streak 갱신 + 보너스 젤리 지급 (fresh state 기준)
+export function checkStreak() {
   const today = todayStr();
-  if (s.streak.last === today) return { granted: false };
-  const y = new Date(); y.setDate(y.getDate() - 1);
-  const yesterday = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
-  s.streak.count = s.streak.last === yesterday ? s.streak.count + 1 : 1;
-  s.streak.last = today;
-  const amount = 3 + Math.min(s.streak.count - 1, 7);   // 3~10
-  s.jelly += amount;
-  save(s);
-  return { granted: true, amount, count: s.streak.count };
+  let granted = false, amount = 0;
+  const s = mutate((draft) => {
+    if (draft.streak.last === today) return;
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    const yesterday = `${y.getFullYear()}-${String(y.getMonth() + 1).padStart(2, '0')}-${String(y.getDate()).padStart(2, '0')}`;
+    draft.streak.count = draft.streak.last === yesterday ? draft.streak.count + 1 : 1;
+    draft.streak.last = today;
+    amount = 3 + Math.min(draft.streak.count - 1, 7);   // 3~10
+    draft.jelly += amount;
+    granted = true;
+  });
+  return { granted, amount, count: s.streak.count, state: s };
 }
 
 // 애정도 레벨: 누적 경험치 구간
