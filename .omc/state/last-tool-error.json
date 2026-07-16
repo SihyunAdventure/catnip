@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"B=\\\"$HOME/.claude/skills/gstack/browse/dist/browse\\\"; $B stop 2>/dev/null; sleep 1; $B --headed goto \\\"file:///private/tmp/claude-501/-Users-sihyun-Dev-side-cathair/f362d430-0d69-4c4a-84ee...",
+  "error": "Exit code 1\n[browse] Starting server...\nUnknown command: '--headed'.\nAvailable commands: accessibility, archive, attrs, back, cdp, chain, cleanup, click, closetab, connect, console, cookie, cookie-import, cookie-import-browser, cookies, css, data, dialog, dialog-accept, dialog-dismiss, diff, disconnect, domain-skill, download, eval, fill, focus, forms, forward, frame, goto, handoff, header, hover, html, inbox, inspect, is, js, links, load-html, media, network, newtab, pdf, perf, press, prettyscr...",
+  "timestamp": "2026-07-16T05:28:54.502Z",
+  "retry_count": 1
+}
