@@ -50,9 +50,36 @@ export function setStatMax(key, v) {
   return mutate((s) => { s.stats[key] = Math.max(s.stats[key] || 0, v); });
 }
 
-export function todayStr() {
-  const d = new Date();
+export function dateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export function todayStr() {
+  return dateStr(new Date());
+}
+
+// 돌봄 연속일 — care.log 에서 파생. 오늘 아직 미체크면 어제까지의 연속을 인정 (관대하게)
+export function careStreak(s) {
+  const log = (s.care && s.care.log) || {};
+  const has = (d) => (log[dateStr(d)] || []).length > 0;
+  const d = new Date();
+  let n = 0;
+  if (!has(d)) d.setDate(d.getDate() - 1);
+  while (has(d)) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
+// 총 돌본 날 수
+export function careDays(s) {
+  const log = (s.care && s.care.log) || {};
+  return Object.keys(log).filter((k) => (log[k] || []).length > 0).length;
+}
+
+// 입양 후 함께한 일수 (입양일 = 1일째)
+export function daysTogether(s) {
+  if (!s.cat || !s.cat.adoptedAt) return 0;
+  const ms = Date.now() - Date.parse(s.cat.adoptedAt);
+  return Math.max(1, Math.floor(ms / 86400000) + 1);
 }
 
 // 오늘 첫 방문이면 streak 갱신 + 보너스 젤리 지급 (fresh state 기준)

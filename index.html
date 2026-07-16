@@ -32,7 +32,7 @@
     font-family:var(--serif);
     background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
   }
-  .stage{position:relative;height:100vh;min-height:520px;overflow:hidden}
+  .stage{position:relative;height:100vh;height:100dvh;min-height:520px;overflow:hidden}
   .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   #ov{cursor:crosshair;touch-action:pan-y}
   .overlay{position:absolute;inset:0;pointer-events:none}
@@ -41,44 +41,55 @@
   .hud-top{
     position:absolute;top:0;left:0;right:0;
     display:flex;justify-content:space-between;align-items:center;
-    padding:20px 28px;font-family:var(--mono);font-size:13px;letter-spacing:.06em;
+    padding:20px 28px;
+    padding:calc(20px + env(safe-area-inset-top)) calc(28px + env(safe-area-inset-right)) 20px calc(28px + env(safe-area-inset-left));
+    font-family:var(--mono);font-size:13px;letter-spacing:.06em;
   }
   .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
   .hud-right{display:flex;gap:14px;align-items:center}
   .jelly{background:var(--paper-hi);border:1px solid var(--ink);padding:5px 12px;font-weight:600}
   .iconbtn{
     appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
-    width:32px;height:32px;cursor:pointer;font-size:14px;padding:0;
+    width:40px;height:40px;cursor:pointer;font-size:15px;padding:0;
   }
 
   .catbar{
-    position:absolute;left:50%;bottom:108px;transform:translateX(-50%);
+    position:absolute;left:50%;bottom:108px;bottom:calc(108px + env(safe-area-inset-bottom));transform:translateX(-50%);
     display:flex;align-items:center;gap:18px;
     font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--ink);
   }
   .catbar .nav{
     appearance:none;border:1px solid var(--ink);background:var(--paper-hi);
-    color:var(--ink);font-family:var(--serif);font-size:20px;line-height:1;
-    width:34px;height:34px;cursor:pointer;padding:0 0 3px;
+    color:var(--ink);font-family:var(--serif);font-size:22px;line-height:1;
+    width:44px;height:44px;cursor:pointer;padding:0 0 3px;
   }
   .catbar .nav:disabled{opacity:.3;cursor:default}
   .catbar #catName{min-width:180px;text-align:center}
 
   .bottom{
-    position:absolute;left:50%;bottom:34px;transform:translateX(-50%);
-    display:flex;gap:10px;align-items:center;
+    position:absolute;left:50%;bottom:34px;bottom:calc(34px + env(safe-area-inset-bottom));transform:translateX(-50%);
+    display:flex;gap:10px;align-items:center;justify-content:center;
+    flex-wrap:wrap;width:max-content;max-width:calc(100vw - 24px);
     font-family:var(--mono);font-size:12px;
   }
   .btn{
     appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
     font-family:var(--mono);font-size:12px;letter-spacing:.06em;
-    padding:10px 18px;cursor:pointer;
+    padding:12px 18px;cursor:pointer;white-space:nowrap;
   }
   .btn.primary{background:var(--ink);color:var(--paper-hi)}
   .btn:focus-visible{outline:2px solid var(--rust);outline-offset:-2px}
 
+  /* 허브 하단 도크 — lovebar 와 버튼을 세로로 쌓아 버튼이 줄바꿈돼도 겹치지 않게 */
+  .dock{
+    position:absolute;left:50%;bottom:34px;bottom:calc(34px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:16px;
+    width:max-content;max-width:calc(100vw - 24px);
+  }
+  .dock .lovebar,.dock .bottom{position:static;transform:none}
   .lovebar{
-    position:absolute;left:50%;bottom:82px;transform:translateX(-50%);
+    position:absolute;left:50%;bottom:82px;bottom:calc(82px + env(safe-area-inset-bottom));transform:translateX(-50%);
     display:flex;gap:8px;align-items:center;
     font-family:var(--mono);font-size:11px;color:var(--ink-soft);
   }
@@ -101,7 +112,7 @@
     font-family:var(--mono);
   }
   .panel h2{margin:0;font-family:var(--serif);font-weight:500;font-size:22px}
-  .panel .story{font-size:11px;color:var(--ink-soft);max-width:240px;text-align:center;line-height:1.6}
+  .panel .story{font-size:11px;color:var(--ink-soft);max-width:240px;text-align:center;line-height:1.6;white-space:pre-line}
   .panel input{
     font-family:var(--mono);font-size:16px;text-align:center;
     border:1px solid var(--ink);background:var(--paper);color:var(--ink);
@@ -110,7 +121,7 @@
   .panel input:focus{outline:2px solid var(--rust)}
 
   #toast{
-    position:absolute;top:72px;left:50%;transform:translateX(-50%);
+    position:absolute;top:72px;top:calc(72px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
     background:var(--ink);color:var(--paper-hi);
     font-family:var(--mono);font-size:12px;padding:9px 16px;
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
@@ -150,7 +161,7 @@
 
   /* 오늘의 돌봄 체크인 카드 */
   .checkin{
-    position:absolute;top:64px;left:28px;
+    position:absolute;top:64px;top:calc(64px + env(safe-area-inset-top));left:calc(28px + env(safe-area-inset-left));
     background:var(--paper-hi);border:1px solid var(--ink);
     padding:12px 14px;display:flex;flex-direction:column;gap:9px;
     font-family:var(--mono);max-width:214px;
@@ -159,13 +170,13 @@
   .checkin .ck-title{font-size:11px;letter-spacing:.06em;font-weight:600;color:var(--ink)}
   .checkin .ck-gear{
     appearance:none;border:none;background:none;cursor:pointer;
-    font-size:12px;line-height:1;padding:0;color:var(--ink-soft);
+    font-size:14px;line-height:1;padding:6px;margin:-6px;color:var(--ink-soft);
   }
   .checkin .ck-list{display:flex;flex-direction:column;gap:6px}
   .checkin .ck-item{
     appearance:none;display:flex;align-items:center;gap:8px;text-align:left;
     border:1px solid var(--ink);background:var(--paper);color:var(--ink);
-    font-family:var(--mono);font-size:11px;padding:7px 9px;cursor:pointer;
+    font-family:var(--mono);font-size:11px;padding:10px;cursor:pointer;
   }
   .checkin .ck-item:hover{border-color:var(--rust)}
   .checkin .ck-item.checked{opacity:.55;cursor:default;background:var(--paper-hi)}
@@ -192,6 +203,30 @@
   .preset:hover{border-color:var(--rust)}
   .preset.sel{background:var(--rust);color:var(--paper-hi);border-color:var(--rust)}
   .care-sub{font-size:11px;color:var(--ink-soft);max-width:280px;text-align:center;line-height:1.6}
+
+  /* 돌봄 기록 (잔디 캘린더) */
+  .checkin .ck-tools{display:flex;gap:16px;align-items:center}
+  .checkin .ck-hist{
+    appearance:none;border:none;background:none;cursor:pointer;
+    font-size:14px;line-height:1;padding:6px;margin:-6px;color:var(--ink-soft);
+  }
+  .hist-stats{font-size:11px;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.04em;text-align:center;line-height:1.9}
+  .hist-stats b{color:var(--rust);font-weight:600}
+  .grass{display:grid;grid-template-rows:repeat(7,13px);grid-auto-flow:column;gap:3px;margin:4px 0 2px}
+  .grass span{width:13px;height:13px;background:rgba(51,41,29,.09)}
+  .grass .l1{background:rgba(164,74,42,.34)}
+  .grass .l2{background:rgba(164,74,42,.62)}
+  .grass .l3{background:var(--rust)}
+  .grass .today{outline:1.5px solid var(--ink);outline-offset:-1px}
+  .grass .future{visibility:hidden}
+
+  /* 오늘 돌봄을 받은 날의 온기 */
+  .warmth{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1.4s ease;
+    background:radial-gradient(ellipse 62% 46% at 50% 58%, rgba(240,178,88,.17), transparent 72%);
+  }
+  .stage.cared .warmth{opacity:1}
+  .checkin .ck-mood{font-size:10.5px;color:var(--rust);letter-spacing:.04em;line-height:1.4}
 </style>
 </head>
 <body>
@@ -199,6 +234,7 @@
   <canvas id="tl"></canvas>
   <canvas id="gl"></canvas>
   <canvas id="ov"></canvas>
+  <div class="warmth"></div>
   <div class="fallback" id="fallback">WebGL2 required.</div>
   <div class="overlay">
     <div class="hud-top">
@@ -227,20 +263,26 @@
       <div id="checkinCard" class="checkin ui hidden">
         <div class="ck-head">
           <span class="ck-title" id="ckTitle"></span>
-          <button class="ck-gear hidden" id="ckGear" aria-label="edit care">⚙</button>
+          <span class="ck-tools">
+            <button class="ck-hist hidden" id="ckHist" aria-label="care history">🗓</button>
+            <button class="ck-gear hidden" id="ckGear" aria-label="edit care">⚙</button>
+          </span>
         </div>
         <div class="ck-list" id="ckList"></div>
+        <div class="ck-mood hidden" id="moodLine"></div>
       </div>
-      <div class="lovebar">
-        <span id="myName"></span>
-        <span class="lv"><span data-i18n="hub.level"></span><span id="lvN">1</span></span>
-        <span class="track"><span class="fill" id="lvFill"></span></span>
-      </div>
-      <div class="bottom ui">
-        <button class="btn" id="feedBtn"></button>
-        <button class="btn" id="dressBtn"></button>
-        <button class="btn" id="playBtn"></button>
-        <button class="btn" id="shareBtn" data-i18n="hub.share"></button>
+      <div class="dock">
+        <div class="lovebar">
+          <span id="myName"></span>
+          <span class="lv"><span data-i18n="hub.level"></span><span id="lvN">1</span></span>
+          <span class="track"><span class="fill" id="lvFill"></span></span>
+        </div>
+        <div class="bottom ui">
+          <button class="btn" id="feedBtn"></button>
+          <button class="btn" id="dressBtn"></button>
+          <button class="btn" id="playBtn"></button>
+          <button class="btn" id="shareBtn" data-i18n="hub.share"></button>
+        </div>
       </div>
     </div>
 
@@ -275,6 +317,24 @@
         <input id="careCustom" maxlength="20" autocomplete="off">
         <button class="btn primary" type="submit" id="careDone"></button>
       </form>
+    </div>
+
+    <!-- 돌봄 기록 -->
+    <div id="histUI" class="panel ui hidden">
+      <div class="card">
+        <h2 id="histTitle"></h2>
+        <div class="grass" id="grassGrid"></div>
+        <div class="hist-stats" id="histStats"></div>
+        <button class="btn" id="histClose"></button>
+      </div>
+    </div>
+
+    <!-- 오늘의 돌봄 완료 -->
+    <div id="allDoneUI" class="panel ui hidden">
+      <div class="card">
+        <h2 id="adTitle"></h2>
+        <div class="story" id="adBody"></div>
+      </div>
     </div>
 
     <!-- 이름 짓기 -->
@@ -503,14 +563,26 @@ const CARE_UI = {
         cardTitle: "today's care", setPrompt: 'set your care →',
         progress: (a, b) => `today's care ${a}/${b}`,
         checkToast: 'nice — +3🐾 +5♥', allDone: 'you took care of you today 🐾',
-        needOne: 'pick at least one' },
+        needOne: 'pick at least one',
+        moodPartial: 'tending to yourself 🐾', moodAll: 'you cared for you today ♥',
+        histTitle: 'care history', histClose: 'close',
+        histStats: (st, tot, tog) => `<b>${st}</b> day streak · cared <b>${tot}</b> days · day <b>${tog}</b> together`,
+        adBody: (n) => 'your cat purrs contently beside you.' + (n >= 2 ? ` ${n} days in a row.` : ''),
+        adGift: 'your cat brought you a little gift +5🐾',
+        back: (d) => `missed you — it's been ${d} days ♥` },
   ko: { setupTitle: '오늘은 무엇을 돌볼까요?',
         setupSub: '작은 것 1~3개를 골라요. 나를 돌보면 고양이가 자라요.',
         custom: '직접 적기 (선택)', done: '완료',
         cardTitle: '오늘의 돌봄', setPrompt: '돌봄 정하기 →',
         progress: (a, b) => `오늘의 돌봄 ${a}/${b}`,
         checkToast: '잘했어요 +3🐾 +5♥', allDone: '오늘도 나를 돌봤다 🐾',
-        needOne: '하나 이상 골라주세요' },
+        needOne: '하나 이상 골라주세요',
+        moodPartial: '나를 돌보는 중 🐾', moodAll: '오늘도 나를 돌봤어요 ♥',
+        histTitle: '돌봄 기록', histClose: '닫기',
+        histStats: (st, tot, tog) => `연속 <b>${st}</b>일 돌봄 · 총 <b>${tot}</b>일 · 함께한 지 <b>${tog}</b>일`,
+        adBody: (n) => '고양이가 곁에서 편안하게 골골거려요.' + (n >= 2 ? ` 연속 ${n}일째예요.` : ''),
+        adGift: '고양이가 작은 선물을 물어왔어요 +5🐾',
+        back: (d) => `보고 싶었어요 — ${d}일 만이에요 ♥` },
 };
 const CL = () => (lang === 'ko' ? 'ko' : 'en');
 let careSelected = new Set();
@@ -527,6 +599,8 @@ function renderCheckin() {
   if (!items.length) {
     $('ckTitle').textContent = CARE_UI[L].cardTitle;
     gear.classList.add('hidden');
+    $('ckHist').classList.add('hidden');
+    updateMood();
     const b = document.createElement('button');
     b.className = 'ck-set';
     b.textContent = CARE_UI[L].setPrompt;
@@ -539,6 +613,8 @@ function renderCheckin() {
   $('ckTitle').textContent = CARE_UI[L].progress(doneCount, items.length);
   gear.classList.remove('hidden');
   gear.onclick = openCareSetup;
+  $('ckHist').classList.remove('hidden');
+  $('ckHist').onclick = openHistory;
   for (const it of items) {
     const checked = done.includes(it.id);
     const btn = document.createElement('button');
@@ -550,7 +626,71 @@ function renderCheckin() {
     if (!checked) btn.onclick = () => checkCare(it.id);
     list.appendChild(btn);
   }
+  updateMood();
 }
+
+// 오늘 돌봄 여부를 고양이 무드로 상시 반영 — 부분(문구) / 전부(문구+온기)
+function updateMood() {
+  const items = state.care.items || [];
+  const done = (state.care.log && state.care.log[store.todayStr()]) || [];
+  const doneCount = items.filter((i) => done.includes(i.id)).length;
+  const all = items.length > 0 && doneCount === items.length;
+  const mood = $('moodLine');
+  if (!doneCount) mood.classList.add('hidden');
+  else {
+    mood.textContent = CARE_UI[CL()][all ? 'moodAll' : 'moodPartial'];
+    mood.classList.remove('hidden');
+  }
+  document.querySelector('.stage').classList.toggle('cared', all);
+}
+
+// 돌봄 기록 패널 — 최근 8주 잔디 + streak/누적/함께한 날
+function openHistory() {
+  const L = CL();
+  $('histTitle').textContent = CARE_UI[L].histTitle;
+  $('histClose').textContent = CARE_UI[L].histClose;
+  $('histStats').innerHTML = CARE_UI[L].histStats(
+    store.careStreak(state), store.careDays(state), store.daysTogether(state));
+  const grid = $('grassGrid');
+  grid.innerHTML = '';
+  const log = state.care.log || {};
+  const today = store.todayStr();
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay() - 7 * 7);   // 8주 전 일요일부터
+  for (let i = 0; i < 8 * 7; i++) {
+    const key = store.dateStr(d);
+    const n = (log[key] || []).length;
+    const cell = document.createElement('span');
+    if (key > today) cell.className = 'future';
+    else {
+      if (n >= 3) cell.className = 'l3';
+      else if (n === 2) cell.className = 'l2';
+      else if (n === 1) cell.className = 'l1';
+      if (key === today) cell.classList.add('today');
+    }
+    grid.appendChild(cell);
+    d.setDate(d.getDate() + 1);
+  }
+  $('histUI').classList.remove('hidden');
+}
+$('histClose').onclick = () => $('histUI').classList.add('hidden');
+$('histUI').addEventListener('pointerdown', (e) => {
+  if (e.target === $('histUI')) $('histUI').classList.add('hidden');
+});
+
+// 오늘의 돌봄 전부 완료 — 하루의 클라이맥스 연출 (+가끔 선물)
+function celebrateAllDone() {
+  const L = CL();
+  const gift = Math.random() < 0.2;
+  if (gift) state = store.mutate((s) => { s.jelly += 5; });
+  updateHUD();
+  $('adTitle').textContent = CARE_UI[L].allDone;
+  $('adBody').textContent = CARE_UI[L].adBody(store.careStreak(state))
+    + (gift ? `\n${CARE_UI[L].adGift}` : '');
+  for (const delay of [0, 450, 950]) setTimeout(() => stage && stage.react('happy'), delay);
+  setTimeout(() => $('allDoneUI').classList.remove('hidden'), 1200);
+}
+$('allDoneUI').addEventListener('pointerdown', () => $('allDoneUI').classList.add('hidden'));
 
 function checkCare(id) {
   const today = store.todayStr();
@@ -568,7 +708,7 @@ function checkCare(id) {
   toast(CARE_UI[CL()].checkToast);
   updateHUD();
   renderCheckin();
-  if (nowAll) setTimeout(() => toast(CARE_UI[CL()].allDone), 1600);
+  if (nowAll) celebrateAllDone();
 }
 
 function openCareSetup() {
@@ -689,10 +829,19 @@ function enterHub(justAdopted = false) {
     setTimeout(() => { stage.react('happy'); toast(`${t('adopt.confirm')}, ${state.cat.name} ♥`); }, 600);
     if (!(state.care.items || []).length) setTimeout(openCareSetup, 2600);
   } else {
+    const prevLast = state.streak.last;                 // checkStreak 가 갱신하기 전의 마지막 방문일
     const r = store.checkStreak();
     state = r.state;
-    if (r.granted) setTimeout(() => toast(t('streak.toast', { n: r.amount, d: r.count })), 800);
+    const gap = prevLast ? Math.round((Date.parse(store.todayStr()) - Date.parse(prevLast)) / 86400000) : 0;
+    if (gap >= 2) {
+      // 며칠 만의 복귀 — 죄책감이 아니라 반가움으로
+      setTimeout(() => { stage.react('happy'); toast(CARE_UI[CL()].back(gap)); }, 700);
+      if (r.granted) setTimeout(() => toast(t('streak.toast', { n: r.amount, d: r.count })), 3000);
+    } else if (r.granted) {
+      setTimeout(() => toast(t('streak.toast', { n: r.amount, d: r.count })), 800);
+    }
     updateHUD();
+    updateMood();
   }
 
   $('feedBtn').onclick = () => {
