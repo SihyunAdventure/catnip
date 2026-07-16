@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>laser pointer — catnip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔴</text></svg>">
+<meta name="description" content="Play laser pointer with your virtual cat — excite it, let it pounce, earn jelly. catnip 미니게임: 레이저 포인터로 고양이와 놀아주세요.">
+<style>
+  :root{
+    --paper:#e8e1ce;
+    --paper-hi:#f3eddc;
+    --ink:#33291d;
+    --ink-soft:#6f6350;
+    --rust:#a44a2a;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+    font-family:var(--serif);
+    background-image:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2"/><feColorMatrix values="0 0 0 0 0.35 0 0 0 0 0.30 0 0 0 0 0.22 0 0 0 0.05 0"/></filter><rect width="160" height="160" filter="url(%23n)"/></svg>');
+  }
+  .stage{position:relative;height:100vh;min-height:520px;overflow:hidden}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #ov{touch-action:none}
+  #ov.playing{cursor:none}
+  .overlay{position:absolute;inset:0;pointer-events:none}
+  .overlay .ui{pointer-events:auto}
+
+  .hud-top{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 28px;font-family:var(--mono);font-size:13px;
+  }
+  .wordmark{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none}
+  .stat{background:var(--paper-hi);border:1px solid var(--ink);padding:5px 12px;font-weight:600;margin-left:8px}
+
+  .panel{
+    position:absolute;inset:0;display:grid;place-items:center;
+    background:rgba(232,225,206,.75);backdrop-filter:blur(3px);
+  }
+  .panel .card{
+    background:var(--paper-hi);border:1px solid var(--ink);
+    padding:32px 40px;display:flex;flex-direction:column;gap:16px;align-items:center;
+    font-family:var(--mono);text-align:center;
+  }
+  .panel h2{margin:0;font-family:var(--serif);font-weight:500;font-size:24px}
+  .panel .hint{font-size:11.5px;color:var(--ink-soft);max-width:260px;line-height:1.7}
+  .panel .big{font-size:40px;font-weight:700}
+  .row{display:flex;gap:10px}
+  .btn{
+    appearance:none;border:1px solid var(--ink);background:var(--paper-hi);color:var(--ink);
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    padding:10px 18px;cursor:pointer;
+  }
+  .btn.primary{background:var(--ink);color:var(--paper-hi)}
+  #toast{
+    position:absolute;top:72px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:var(--paper-hi);
+    font-family:var(--mono);font-size:12px;padding:9px 16px;
+    opacity:0;transition:opacity .25s;pointer-events:none;
+  }
+  #toast.show{opacity:1}
+  .fallback{
+    position:absolute;inset:0;display:none;place-items:center;
+    font-family:var(--mono);font-size:13px;color:var(--rust);
+  }
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<section class="stage">
+  <canvas id="tl"></canvas>
+  <canvas id="gl"></canvas>
+  <canvas id="ov"></canvas>
+  <div class="fallback" id="fallback">WebGL2 required.</div>
+  <div class="overlay">
+    <div class="hud-top">
+      <a class="wordmark" href="../">catnip</a>
+      <div>
+        <span class="stat" id="timeBox">60</span>
+        <span class="stat"><span id="scoreN">0</span> 🎯</span>
+        <span class="stat">🐾 <span id="jellyN">0</span></span>
+      </div>
+    </div>
+
+    <div class="panel ui" id="startPanel">
+      <div class="card">
+        <h2 data-i18n="laser.title"></h2>
+        <div class="hint" data-i18n="laser.hint"></div>
+        <button class="btn primary" id="startBtn" data-i18n="laser.start"></button>
+        <a class="btn" href="../" data-i18n="laser.home"></a>
+      </div>
+    </div>
+
+    <div class="panel ui hidden" id="endPanel">
+      <div class="card">
+        <h2 data-i18n="laser.done"></h2>
+        <div class="big"><span id="finalScore">0</span> <span style="font-size:16px" data-i18n="laser.score"></span></div>
+        <div style="font-size:14px"><span data-i18n="laser.earned"></span> +<span id="earnedN">0</span> 🐾</div>
+        <div class="row">
+          <button class="btn primary" id="againBtn" data-i18n="laser.again"></button>
+          <a class="btn" href="../" data-i18n="laser.home"></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast"></div>
+  </div>
+</section>
+
+<script type="module">
+import { CatStage } from '../engine/cat-stage.js';
+import * as store from '../engine/save.js';
+import { t, apply, lang } from '../engine/i18n.js';
+
+document.documentElement.lang = lang;
+apply();
+
+const $ = (id) => document.getElementById(id);
+const state = store.load();
+if (!state.cat) location.href = '../';   // 입양 전이면 홈으로
+
+let stage;
+try {
+  stage = new CatStage({ tl: $('tl'), gl: $('gl'), ov: $('ov'), breeds: [state.cat?.breed ?? 0] });
+} catch (e) {
+  $('fallback').style.display = 'grid';
+  $('fallback').textContent = 'WebGL2 required.';
+  throw e;
+}
+
+const ROUND = 60;
+let playing = false;
+let exc = 0;                 // 흥분 게이지 0..1
+let score = 0, combo = 0, maxCombo = 0, lastCatch = 0;
+let timeLeft = ROUND;
+let timerId = null;
+let pounce = null;           // {t0, dx, dy, judged, tx, ty}
+const dot = { x: -9999, y: -9999, px: -9999, py: -9999 };
+
+$('jellyN').textContent = state.jelly;
+
+function toast(msg, ms = 1200) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+$('ov').addEventListener('pointermove', (e) => {
+  const r = $('ov').getBoundingClientRect();
+  dot.x = e.clientX - r.left;
+  dot.y = e.clientY - r.top;
+});
+
+function startRound() {
+  score = 0; combo = 0; maxCombo = 0; exc = 0; timeLeft = ROUND; pounce = null;
+  $('scoreN').textContent = '0';
+  $('timeBox').textContent = ROUND;
+  $('startPanel').classList.add('hidden');
+  $('endPanel').classList.add('hidden');
+  $('ov').classList.add('playing');
+  playing = true;
+  timerId = setInterval(() => {
+    timeLeft--;
+    $('timeBox').textContent = timeLeft;
+    if (timeLeft <= 0) endRound();
+  }, 1000);
+}
+
+function endRound() {
+  playing = false;
+  clearInterval(timerId);
+  $('ov').classList.remove('playing');
+  stage.setExtraOffset(0, 0);
+  stage.lookOverride = null;
+  const earned = score * 2 + maxCombo;
+  state.jelly += earned;
+  state.stats.laserCatches += score;
+  state.stats.laserBest = Math.max(state.stats.laserBest, score);
+  store.save(state);
+  $('finalScore').textContent = score;
+  $('earnedN').textContent = earned;
+  $('jellyN').textContent = state.jelly;
+  $('endPanel').classList.remove('hidden');
+}
+
+$('startBtn').onclick = startRound;
+$('againBtn').onclick = startRound;
+
+const t2 = t;   // onFrame 파라미터 t(시간)와 번역 함수 t 이름 충돌 방지
+
+// ── 게임 루프 (stage.onFrame 훅) ───────────────────────────
+stage.onFrame = (t, octx, { center }) => {
+  if (!playing) return;
+
+  stage.lookOverride = { x: dot.x, y: dot.y };
+
+  // 흥분: 고양이 근처에서 빠르게 움직일수록
+  const speed = Math.hypot(dot.x - dot.px, dot.y - dot.py);
+  dot.px = dot.x; dot.py = dot.y;
+  const dc = Math.hypot(dot.x - center.x, dot.y - (center.y + center.R));
+  if (!pounce && dc < center.R * 3.2 && speed > 2) exc = Math.min(1, exc + speed * 0.0011);
+  exc *= 0.996;
+  if (exc > 0.65) stage.excite(exc * 1.5);
+
+  // 덮치기 발동
+  if (!pounce && exc >= 1 && dc < center.R * 3.2) {
+    const dx = Math.max(-center.R * 1.3, Math.min(center.R * 1.3, dot.x - center.x));
+    const dy = Math.max(-center.R * 0.9, Math.min(center.R * 0.5, dot.y - (center.y + center.R * 1.2)));
+    pounce = { t0: t, dx, dy, tx: dot.x, ty: dot.y, judged: false };
+    exc = 0;
+  }
+
+  // 덮치기 애니메이션 + 판정
+  if (pounce) {
+    const p = (t - pounce.t0) / 480;
+    if (p >= 1) {
+      stage.setExtraOffset(0, 0);
+      pounce = null;
+    } else {
+      const s = Math.sin(Math.min(p, 1) * Math.PI);
+      stage.setExtraOffset(pounce.dx * s, pounce.dy * s);
+      if (!pounce.judged && p >= 0.45) {
+        pounce.judged = true;
+        const hit = Math.hypot(dot.x - pounce.tx, dot.y - pounce.ty) < center.R * 0.95;
+        if (hit) {
+          const now = t;
+          combo = (now - lastCatch < 7000) ? combo + 1 : 1;
+          lastCatch = now;
+          maxCombo = Math.max(maxCombo, combo);
+          score++;
+          $('scoreN').textContent = score;
+          stage.react('happy');
+          toast(`${t2('laser.catch')} ${combo > 1 ? '×' + combo : ''}`);
+        } else {
+          combo = 0;
+          stage.splat(center.x, center.y + center.R, (Math.random() - 0.5) * 20, 8);
+          toast(t2('laser.miss'));
+        }
+      }
+    }
+  }
+
+  // 레이저 점 (커서 숨김 상태)
+  if (dot.x > -100) {
+    const g = octx.createRadialGradient(dot.x, dot.y, 0, dot.x, dot.y, 16);
+    g.addColorStop(0, 'rgba(255,40,20,0.95)');
+    g.addColorStop(0.35, 'rgba(255,40,20,0.5)');
+    g.addColorStop(1, 'rgba(255,40,20,0)');
+    octx.fillStyle = g;
+    octx.beginPath(); octx.arc(dot.x, dot.y, 16, 0, Math.PI * 2); octx.fill();
+    octx.fillStyle = '#ff2814';
+    octx.beginPath(); octx.arc(dot.x, dot.y, 4.5, 0, Math.PI * 2); octx.fill();
+  }
+
+  // 흥분 게이지
+  const W2 = octx.canvas.clientWidth || innerWidth;
+  octx.fillStyle = 'rgba(51,41,29,.15)';
+  octx.fillRect(W2 / 2 - 90, 64, 180, 6);
+  octx.fillStyle = exc >= 1 ? '#c96b52' : '#a44a2a';
+  octx.fillRect(W2 / 2 - 90, 64, 180 * Math.min(1, exc), 6);
+};
+</script>
+</body>
+</html>

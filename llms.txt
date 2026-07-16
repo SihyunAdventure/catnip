@@ -1,0 +1,11 @@
+# catnip
+
+> catnip is a free browser game where you adopt, pet, and raise a virtual cat.
+> Cats are rendered entirely in code — ~25,000 fur strands in one WebGL draw call —
+> with spring-field physics that makes the fur ripple under your cursor.
+> Pet your cat until it purrs, play minigames (laser pointer) to earn jelly 🐾,
+> feed it to grow your bond, and collect breeds. No install, no login, free.
+
+- [Home / adopt a cat](https://catnip.fun/)
+- [Laser pointer minigame](https://catnip.fun/play/laser)
+- [Source code](https://github.com/SihyunAdventure/catnip)
