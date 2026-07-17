@@ -2,7 +2,7 @@
   "name": "catdeworld",
   "version": "0.1.0",
   "private": true,
-  "description": "캣데월드 — catnip 의 앱인토스(Apps in Toss) 미니앱 빌드",
+  "description": "캣데월드 — Nabi(글로벌 웹)의 앱인토스(Apps in Toss) 미니앱 빌드. appName 만 기술 ID 'nabi'",
   "type": "module",
   "scripts": {
     "dev": "granite dev",
