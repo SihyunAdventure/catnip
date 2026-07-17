@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>catnip — a tiny self-care companion, with a cat</title>
+<title>Nabi — a tiny self-care companion, with a cat</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐱</text></svg>">
 <meta name="description" content="check in on yourself, and your cat grows. 나를 돌보면 고양이가 자라는 힐링 컴패니언.">
-<meta property="og:title" content="catnip">
+<meta property="og:title" content="Nabi">
 <meta property="og:description" content="check in on yourself, and your cat grows. 나를 돌보면 고양이가 자라는 힐링 컴패니언.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebApplication","name":"catnip",
+{"@context":"https://schema.org","@type":"WebApplication","name":"Nabi",
  "applicationCategory":"LifestyleApplication","operatingSystem":"Web",
  "description":"A gentle self-care companion: check in on your daily habits and your virtual cat, rendered with 25,000 fur strands in WebGL, grows with you.",
  "offers":{"@type":"Offer","price":"0"}}
@@ -230,7 +230,7 @@
 </style>
 </head>
 <body>
-<section class="stage" aria-label="catnip">
+<section class="stage" aria-label="Nabi">
   <canvas id="tl"></canvas>
   <canvas id="gl"></canvas>
   <canvas id="ov"></canvas>
@@ -238,7 +238,7 @@
   <div class="fallback" id="fallback">WebGL2 required.</div>
   <div class="overlay">
     <div class="hud-top">
-      <a class="wordmark" href="/">catnip</a>
+      <a class="wordmark" href="/">Nabi</a>
       <div class="hud-right ui">
         <span class="jelly hidden" id="jellyBox">🐾 <span id="jellyN">0</span></span>
         <button class="iconbtn" id="muteBtn" aria-label="sound">🔊</button>
@@ -352,8 +352,8 @@
 </section>
 
 <section class="about">
-  <h2 data-i18n="about.title">about catnip</h2>
-  <p>catnip is a tiny self-care companion, with a cat. Adopt one, then check in on yourself
+  <h2 data-i18n="about.title">about Nabi</h2>
+  <p>Nabi is a tiny self-care companion, with a cat. Adopt one, then check in on yourself
   each day — drink a glass of water, take a short walk, breathe. Tend to the small things and
   your cat grows: it's drawn entirely in code, about 25,000 fur strands in a single WebGL draw
   call, with spring-field physics that parts and ripples the fur under your cursor. Pet it until
@@ -367,7 +367,7 @@
   in <a href="/play/box">the box</a>, or brush out the tangles in a <a href="/play/groom">grooming</a>
   session. Browse every breed you've met so far in the <a href="/cats">cat book</a>.
   No install, no login, free.</p>
-  <p>catnip은 나를 돌보면 고양이가 자라는 작은 힐링 컴패니언이에요. 고양이를 입양해 이름을 지어주고,
+  <p>나비는 나를 돌보면 고양이가 자라는 작은 힐링 컴패니언이에요. 고양이를 입양해 이름을 지어주고,
   매일 나를 조금씩 돌봐요 — 물 한 잔 마시기, 5분 산책, 심호흡처럼 작은 것들을요. 챙긴 만큼 고양이가
   자라납니다. 쓰다듬으면 골골거리고, 간식을 주면 애정이 쌓이고,
   <a href="/focus">조용한 방</a>에서 고양이가 자는 동안 집중하면 젤리를 듬뿍 받아요.
@@ -884,15 +884,15 @@ function enterHub(justAdopted = false) {
     x.fillText(state.cat.name, 500, 1090);
     x.font = '28px Menlo, monospace';
     x.fillStyle = '#a44a2a';
-    x.fillText('catnip.fun', 500, 1160);
+    x.fillText('nabi.fun', 500, 1160);
     card.toBlob(async (blob) => {
-      const file = new File([blob], 'my-catnip-cat.png', { type: 'image/png' });
+      const file = new File([blob], 'my-nabi-cat.png', { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: 'catnip' }); return; } catch { /* 취소 */ }
+        try { await navigator.share({ files: [file], title: 'Nabi' }); return; } catch { /* 취소 */ }
       } else {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'my-catnip-cat.png';
+        a.download = 'my-nabi-cat.png';
         a.click();
         toast(t('share.hint'));
       }

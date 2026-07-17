@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>quiet room — catnip</title>
+<title>quiet room — Nabi</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>😴</text></svg>">
-<meta name="description" content="Your cat naps beside you while you focus — the heart of catnip's self-care loop. Finish a session, earn jelly. catnip 조용한 방: 고양이가 곁에서 자는 동안 나를 돌보는 시간, 완주하면 젤리를 받으세요.">
-<meta property="og:title" content="catnip — quiet room">
+<meta name="description" content="Your cat naps beside you while you focus — the heart of Nabi's self-care loop. Finish a session, earn jelly. 나비 조용한 방: 고양이가 곁에서 자는 동안 나를 돌보는 시간, 완주하면 젤리를 받으세요.">
+<meta property="og:title" content="Nabi — quiet room">
 <meta property="og:description" content="A quiet corner of self-care: focus while your cat sleeps beside you. 고양이가 곁에서 자는 동안, 나를 돌보는 조용한 시간.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
@@ -109,7 +109,7 @@
   <div class="fallback" id="fallback">WebGL2 required.</div>
   <div class="overlay">
     <div class="hud-top">
-      <a class="wordmark" href="../">catnip</a>
+      <a class="wordmark" href="../">Nabi</a>
       <span class="jelly">🐾 <span id="jellyN">0</span></span>
     </div>
 
@@ -190,7 +190,7 @@ $('tDone').textContent = L('done');
 $('againBtn').textContent = L('again');
 for (const el of document.querySelectorAll('.u-min')) el.textContent = L('min');
 
-const idleTitle = `${L('title')} — catnip`;
+const idleTitle = `${L('title')} — Nabi`;
 document.title = idleTitle;
 
 let state = store.load();
@@ -255,7 +255,7 @@ function tick() {
   if (rem <= 0) { complete(); return; }
   const txt = fmt(rem);
   $('clock').textContent = txt;
-  document.title = `(${txt}) catnip`;
+  document.title = `(${txt}) Nabi`;
 }
 
 function startSession(min, jelly) {
@@ -299,7 +299,7 @@ function complete() {
   $('earnedN').textContent = earned;
 
   chime();
-  document.title = `✅ ${L('doneTitle')} — catnip`;
+  document.title = `✅ ${L('doneTitle')} — Nabi`;
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     try { new Notification(L('done'), { body: `+${earned} 🐾` }); } catch { /* 무시 */ }
   }

@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>cat would-you-rather — catnip</title>
+<title>cat would-you-rather — Nabi</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
 <meta name="description" content="10 impossible cat-servant dilemmas — choose fast, then see how other servants voted. 냥 밸런스 게임: 집사라면 피할 수 없는 딜레마 10문항, 당신의 집사 성향은?">
-<meta property="og:title" content="cat would-you-rather — catnip">
+<meta property="og:title" content="cat would-you-rather — Nabi">
 <meta property="og:description" content="10 impossible cat-servant dilemmas. 냥 밸런스 게임 10문항으로 알아보는 집사 성향.">
 <meta property="og:type" content="website">
 <style>
@@ -110,7 +110,7 @@
 <body>
 <div class="wrap">
   <div class="hud-top">
-    <a class="wordmark" href="../">catnip</a>
+    <a class="wordmark" href="../">Nabi</a>
     <span class="stat">🐾 <span id="jellyN">0</span></span>
   </div>
 
@@ -269,7 +269,7 @@ const QUESTIONS = [
 
 // ── 로컬 선택 누적 (engine/save.js 와 별도 키) ────────────────────
 // 서버가 없으므로 표시 분포 = 시드값 + 내 로컬 누적 선택 ±1~2%.
-const BKEY = 'catnip.balance.v1';
+const BKEY = 'catnip.balance.v1'; // 브랜드가 Nabi 로 바뀌어도 기존 유저 세이브 보존을 위해 키는 유지
 function loadDist() { try { return JSON.parse(localStorage.getItem(BKEY)) || {}; } catch { return {}; } }
 function saveDist(d) { try { localStorage.setItem(BKEY, JSON.stringify(d)); } catch { /* private mode 등 */ } }
 
@@ -504,12 +504,12 @@ $('shareBtn').onclick = async () => {
 
   x.fillStyle = '#a44a2a';
   x.font = '600 34px Menlo, monospace';
-  x.fillText('catnip.fun', W / 2, H - 110);
+  x.fillText('nabi.fun', W / 2, H - 110);
 
   card.toBlob(async (blob) => {
     const file = new File([blob], 'my-cat-would-you-rather.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'catnip' }); return; } catch { /* 취소 */ }
+      try { await navigator.share({ files: [file], title: 'Nabi' }); return; } catch { /* 취소 */ }
     }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);

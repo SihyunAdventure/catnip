@@ -1,5 +1,5 @@
-// catnip 저장 스키마 v1 — localStorage
-const KEY = 'catnip.v1';
+// Nabi 저장 스키마 v1 — localStorage
+const KEY = 'catnip.v1'; // 브랜드가 Nabi 로 바뀌어도 기존 유저 세이브 보존을 위해 키는 유지
 
 const DEFAULT = () => ({
   v: 1,

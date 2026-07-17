@@ -1,4 +1,4 @@
-// catnip i18n — en/ko
+// Nabi i18n — en/ko
 const dict = {
   en: {
     'breed.0': 'Cheese Tabby', 'breed.1': 'Mackerel Tabby', 'breed.2': 'Calico', 'breed.3': 'Tuxedo',
@@ -26,7 +26,7 @@ const dict = {
     'laser.home': 'home',
     'laser.start': 'start',
     'share.hint': 'image saved — share it anywhere!',
-    'about.title': 'about catnip',
+    'about.title': 'about Nabi',
   },
   ko: {
     'breed.0': '치즈', 'breed.1': '고등어', 'breed.2': '삼색이', 'breed.3': '턱시도',
@@ -54,7 +54,7 @@ const dict = {
     'laser.home': '집으로',
     'laser.start': '시작',
     'share.hint': '이미지가 저장됐어요 — 어디든 자랑하세요!',
-    'about.title': 'catnip 소개',
+    'about.title': '나비 소개',
   },
 };
 

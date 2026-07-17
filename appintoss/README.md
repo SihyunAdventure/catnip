@@ -1,32 +1,33 @@
-# 캣데월드 — 앱인토스(Apps in Toss) 빌드
+# 나비(Nabi) — 앱인토스(Apps in Toss) 빌드
 
-catnip(루트의 정적 사이트)을 토스 미니앱 **캣데월드**로 포팅하는 빌드 레이어.
+루트의 정적 사이트(Nabi)를 토스 미니앱 **나비**로 포팅하는 빌드 레이어.
+브랜드는 웹·앱 통일 — 글로벌 "Nabi", 토스(한국) "나비". 네이밍 히스토리는 PLAN.md §15-0.
 루트 웹 빌드(Vercel)에는 영향 없음 — `.vercelignore` 로 이 디렉토리는 웹 배포에서 제외된다.
 
 ## 구조
 
-- `granite.config.ts` — 앱인토스 설정 (appName `catdeworld`, 브랜드, 웹뷰 옵션)
-- `build.mjs` — 루트 사이트를 `dist/` 로 조립 + 토스용 변환 (브랜딩·ko 강제·링크 정규화)
+- `granite.config.ts` — 앱인토스 설정 (appName `nabi`, 표시명 나비, 웹뷰 옵션)
+- `build.mjs` — 루트 사이트를 `dist/` 로 조립 + 토스용 변환 (한글 표기·ko 강제·링크 정규화)
 - `assets/icon-600.png` — 콘솔 업로드용 앱 로고 (600×600, 불투명 — 실렌더 고양이 스냅샷)
-- 산출물: `catdeworld.ait` (gitignore 됨, `npm run build` 로 재생성)
+- 산출물: `nabi.ait` (gitignore 됨, `npm run build` 로 재생성)
 
 ## 명령어
 
 ```bash
 npm install        # 최초 1회
 npm run dev        # granite dev — build.mjs --serve 로 localhost:5173 서빙 + QR
-npm run build      # ait build — dist 조립 후 catdeworld.ait 아티팩트 생성
+npm run build      # ait build — dist 조립 후 nabi.ait 아티팩트 생성
 npm run deploy     # ait deploy — 콘솔 API 키 필요 (ait token add 선행)
 ```
 
 ## 배포 절차 (Phase C)
 
 1. [개발자센터](https://developers-apps-in-toss.toss.im/) 워크스페이스에서 앱 등록
-   - 앱 이름 **캣데월드** · appName **catdeworld** (등록 후 변경 불가, 딥링크 `intoss://catdeworld`)
+   - 앱 이름 **나비** · appName **nabi** (등록 후 변경 불가, 딥링크 `intoss://nabi`)
    - 유형: **라이프(비게임)** 1안 — 반려 시 게임 트랙 전환 (PLAN.md §15 Phase A-3)
 2. 콘솔 자산 업로드: 로고 `assets/icon-600.png` (600×600) · 썸네일 1932×828 · 스크린샷 세로 636×1048 3장+
    - `granite.config.ts` 의 `brand.icon` 을 콘솔 발급 URL 로 교체
-3. `npm run build` → `catdeworld.ait` 콘솔 업로드 (또는 `ait token add` 후 `npm run deploy`)
+3. `npm run build` → `nabi.ait` 콘솔 업로드 (또는 `ait token add` 후 `npm run deploy`)
 4. 샌드박스 앱에서 1회 이상 테스트 (검토 요청 활성화 조건) → '검토 요청하기' (영업일 1~3일)
 5. 승인 후 '출시하기'
 

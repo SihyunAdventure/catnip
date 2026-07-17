@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>cutest cat world cup — catnip</title>
+<title>cutest cat world cup — Nabi</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>">
-<meta name="description" content="Run a 16-cat cutest cat world cup — pick the cuter cat each round until a champion is crowned. catnip 귀요미 월드컵: 16강 토너먼트로 가장 귀여운 고양이를 뽑아요.">
-<meta property="og:title" content="cutest cat world cup · 귀요미 월드컵 — catnip">
+<meta name="description" content="Run a 16-cat cutest cat world cup — pick the cuter cat each round until a champion is crowned. 나비 귀요미 월드컵: 16강 토너먼트로 가장 귀여운 고양이를 뽑아요.">
+<meta property="og:title" content="cutest cat world cup · 귀요미 월드컵 — Nabi">
 <meta property="og:description" content="16 procedurally-generated cats, one champion. 16마리 중 최고의 귀요미를 골라주세요.">
 <meta property="og:type" content="website">
 <style>
@@ -128,7 +128,7 @@
 <!-- 매치 -->
 <section class="screen hidden" id="matchScreen">
   <div class="hud-top">
-    <a class="wordmark" href="../">catnip</a>
+    <a class="wordmark" href="../">Nabi</a>
     <span class="stat" id="roundLabel"></span>
   </div>
   <div class="pick-hint" id="pickHint"></div>
@@ -148,7 +148,7 @@
 <!-- 우승 -->
 <section class="screen hidden" id="winScreen">
   <div class="hud-top">
-    <a class="wordmark" href="../">catnip</a>
+    <a class="wordmark" href="../">Nabi</a>
     <span class="stat">🏆</span>
   </div>
   <div class="win-stage">
@@ -422,15 +422,15 @@ $('wcShare').onclick = async () => {
   x.fillText(`🏆 ${name}`, 500, 1090);
   x.font = '28px Menlo, monospace';
   x.fillStyle = '#a44a2a';
-  x.fillText('catnip.fun', 500, 1160);
+  x.fillText('nabi.fun', 500, 1160);
   card.toBlob(async (blob) => {
-    const file = new File([blob], 'catnip-worldcup.png', { type: 'image/png' });
+    const file = new File([blob], 'nabi-worldcup.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'catnip' }); return; } catch { /* 취소 */ }
+      try { await navigator.share({ files: [file], title: 'Nabi' }); return; } catch { /* 취소 */ }
     }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'catnip-worldcup.png';
+    a.download = 'nabi-worldcup.png';
     a.click();
     toast(T('saved'));
   }, 'image/png');

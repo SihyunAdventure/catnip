@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>which cat are you? — catnip</title>
+<title>which cat are you? — Nabi</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
-<meta name="description" content="Answer 8 questions and meet the cat that matches your personality. 8개의 질문에 답하고 나와 닮은 고양이를 찾아보세요 — catnip 성격 퀴즈.">
-<meta property="og:title" content="which cat are you? — catnip">
+<meta name="description" content="Answer 8 questions and meet the cat that matches your personality. 8개의 질문에 답하고 나와 닮은 고양이를 찾아보세요 — 나비 성격 퀴즈.">
+<meta property="og:title" content="which cat are you? — Nabi">
 <meta property="og:description" content="Answer 8 questions and meet your cat match. 나와 닮은 고양이는 어떤 고양이일까요?">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
@@ -120,7 +120,7 @@
   <div class="fallback" id="fallback">WebGL2 required.</div>
   <div class="overlay">
     <div class="hud-top">
-      <a class="wordmark" href="../">catnip</a>
+      <a class="wordmark" href="../">Nabi</a>
       <div><span class="stat">🐾 <span id="jellyN">0</span></span></div>
     </div>
 
@@ -516,12 +516,12 @@ function shareCard(breed, breedName) {
   x.fillText(lang === 'ko' ? '나와 닮은 고양이는?' : 'which cat are you?', 500, 1108);
   x.fillStyle = '#a44a2a';
   x.font = '28px Menlo, monospace';
-  x.fillText('catnip.fun', 500, 1168);
+  x.fillText('nabi.fun', 500, 1168);
 
   card.toBlob(async (blob) => {
     const file = new File([blob], 'which-cat-am-i.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: 'catnip' }); return; } catch { /* 취소 */ }
+      try { await navigator.share({ files: [file], title: 'Nabi' }); return; } catch { /* 취소 */ }
     }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);

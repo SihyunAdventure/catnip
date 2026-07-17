@@ -1,6 +1,6 @@
-# catnip
+# Nabi
 
-**catnip is a tiny self-care companion — check in on yourself, and your cat grows.** 오늘 하루를 돌보러 오면, 쓰다듬으면 찰랑거리는 고양이가 곁에 있습니다 — 이미지 없이 전부 코드로 그린 인터랙티브 플러시 퍼.
+**Nabi is a tiny self-care companion — check in on yourself, and your cat grows.** 오늘 하루를 돌보러 오면, 쓰다듬으면 찰랑거리는 고양이가 곁에 있습니다 — 이미지 없이 전부 코드로 그린 인터랙티브 플러시 퍼.
 
 정적 페이지 한 장(`index.html`)이 전부입니다. 빌드 과정 없음.
 

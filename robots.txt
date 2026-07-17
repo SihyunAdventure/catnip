@@ -10,4 +10,4 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
-Sitemap: https://catnip.fun/sitemap.xml
+Sitemap: https://nabi.fun/sitemap.xml

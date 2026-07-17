@@ -1,4 +1,4 @@
-// catnip 엔진 — CatStage: 고양이 렌더링(WebGL2 인스턴싱 퍼) + 물리(스프링 필드·verlet) + 인터랙션
+// 나비 엔진 — CatStage: 고양이 렌더링(WebGL2 인스턴싱 퍼) + 물리(스프링 필드·verlet) + 인터랙션
 // 사용: const stage = new CatStage({ tl, gl, ov, breeds: [0,1,2,3] });
 //  - stage.goTo(i)                캐러셀 이동
 //  - stage.lookOverride = {x,y}   시선 강제 (스크린 좌표, null이면 커서)

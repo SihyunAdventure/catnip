@@ -1,25 +1,26 @@
-# catnip
+# Nabi
 
-> catnip is a tiny self-care companion: adopt a cat, check in on your daily self-care,
+> Nabi is a free, browser-based self-care companion where you adopt a cat that grows as you
+> take care of yourself: check in on your daily self-care,
 > focus in the quiet room, and play together. Cats are rendered entirely in code —
 > ~25,000 fur strands in one WebGL draw call — with spring-field physics that makes
 > the fur ripple under your cursor. Check in on yourself, pet your cat until it purrs,
 > rest with a few minigames (laser pointer, and more) to earn jelly 🐾, feed it to grow
 > your bond, and collect breeds. No install, no login, free.
 
-- [Home / adopt a cat](https://catnip.fun/)
-- [Quiet room focus timer](https://catnip.fun/focus) — your cat naps beside you while you focus; finish a session, earn jelly
-- [Laser pointer minigame](https://catnip.fun/play/laser) — rest and play: wiggle a laser dot and let your cat pounce for jelly
-- [Cutie world cup minigame](https://catnip.fun/play/worldcup) — rest and play: vote round by round for the cutest cat
-- [Which-cat-are-you quiz](https://catnip.fun/play/quiz) — rest and play: answer a few questions to find your matching cat
-- [Cat balance game](https://catnip.fun/play/balance) — rest and play: cat-themed would-you-rather dilemmas
-- [Fishing rod minigame](https://catnip.fun/play/fishing) — rest and play: dangle a feather and let your cat grab it for jelly
-- [Kneading minigame](https://catnip.fun/play/knead) — rest and play: tap to the rhythm of tiny paws
-- [The Box minigame](https://catnip.fun/play/box) — rest and play: time the jump as the box passes by
-- [Grooming minigame](https://catnip.fun/play/groom) — rest and play: brush out the tangles and hear the purr
-- [Cat book](https://catnip.fun/cats) — browse every breed you've collected
-- [Cheese tabby (Korean shorthair)](https://catnip.fun/cats/cheese-tabby) — the orange/ginger/marmalade tabby: coat, markings, and personality, with a live petting demo
-- [Mackerel tabby (Korean shorthair)](https://catnip.fun/cats/mackerel-tabby) — the silver-grey fish-boned striped tabby: coat and personality, with a live petting demo
-- [Calico cat](https://catnip.fun/cats/calico) — the tricolor white/black/orange cat: coat genetics and personality, with a live petting demo
-- [Tuxedo cat](https://catnip.fun/cats/tuxedo) — the black-and-white bicolor cat: coat and personality, with a live petting demo
+- [Home / adopt a cat](https://nabi.fun/)
+- [Quiet room focus timer](https://nabi.fun/focus) — your cat naps beside you while you focus; finish a session, earn jelly
+- [Laser pointer minigame](https://nabi.fun/play/laser) — rest and play: wiggle a laser dot and let your cat pounce for jelly
+- [Cutie world cup minigame](https://nabi.fun/play/worldcup) — rest and play: vote round by round for the cutest cat
+- [Which-cat-are-you quiz](https://nabi.fun/play/quiz) — rest and play: answer a few questions to find your matching cat
+- [Cat balance game](https://nabi.fun/play/balance) — rest and play: cat-themed would-you-rather dilemmas
+- [Fishing rod minigame](https://nabi.fun/play/fishing) — rest and play: dangle a feather and let your cat grab it for jelly
+- [Kneading minigame](https://nabi.fun/play/knead) — rest and play: tap to the rhythm of tiny paws
+- [The Box minigame](https://nabi.fun/play/box) — rest and play: time the jump as the box passes by
+- [Grooming minigame](https://nabi.fun/play/groom) — rest and play: brush out the tangles and hear the purr
+- [Cat book](https://nabi.fun/cats) — browse every breed you've collected
+- [Cheese tabby (Korean shorthair)](https://nabi.fun/cats/cheese-tabby) — the orange/ginger/marmalade tabby: coat, markings, and personality, with a live petting demo
+- [Mackerel tabby (Korean shorthair)](https://nabi.fun/cats/mackerel-tabby) — the silver-grey fish-boned striped tabby: coat and personality, with a live petting demo
+- [Calico cat](https://nabi.fun/cats/calico) — the tricolor white/black/orange cat: coat genetics and personality, with a live petting demo
+- [Tuxedo cat](https://nabi.fun/cats/tuxedo) — the black-and-white bicolor cat: coat and personality, with a live petting demo
 - [Source code](https://github.com/SihyunAdventure/catnip)
